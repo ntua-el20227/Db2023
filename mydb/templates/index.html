@@ -1,0 +1,142 @@
+{% extends "global_layout.html" %}
+{% block content %}
+{% include "flash_messages.html" %}
+
+<div class="header-blue">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+      <a class="navbar-brand" href="/schoolpage/userhome">School Libraries 📚</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="#">How to use</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/contact">Contact</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="modal", data-bs-target="#handlermodal" href="/">Apply for School Handler</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="modal", data-bs-target="#adminmodal" href="/">Admin 🔑</a>
+          </li>
+        </ul>
+        <form action="/" method="POST">
+        <div class="form-group">
+          <select class="form-select" name="school">
+            <option selected>Choose your School</option>
+            {% for school_name in school_names %}
+            <option> {{school_name}} </option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-outline-success" type="submit">Redirect</button>
+            </div>
+
+        </form>   
+    </div>
+  </nav>
+    <br>
+</div>
+    <div class="image">
+        <img src="https://live.staticflickr.com/65535/52907669417_eb625bc93b_k.jpg", class="round float-end" width="400" height="400"/>
+    </div>
+    <div class="text">
+      <br>
+      <br>
+        <h2>Welcome to School Libraries 📚 Website</h2>
+        <br>
+        <br>
+        <h5>
+       "Reading a book is like taking a journey"</h5>
+    </div>      
+
+<div id="adminmodal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Login (Admin Only)</h4>
+            </div>
+            <div class="modal-body">
+                <form action="/adminlogin" method="POST">
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" autocomplete="off" class="form-control" name="username" required="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" class="form-control" name="password" required="1">
+                    </div>
+                    <div class="form-group">
+                       <button class="btn btn-primary" type="submit">Login</button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> 
+                    </div>    
+                </form>   
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="handlermodal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 class="modal-title">School Handler Application Form</h4>
+          </div>
+          <div class="modal-body">
+              <form action="/handlerapplication" method="POST">
+                  <div class="form-group">
+                      <label>First Name:</label>
+                      <input type="text" class="form-control" autocomplete="off" name="first_name" required="1">
+                  </div>
+                  <div class="form-group">
+                    <label>Last Name:</label>
+                    <input type="text" class="form-control" autocomplete="off" name="last_name" required="1">
+                </div>
+                <div class="form-group">
+                  <label>Username:</label>
+                  <input type="name" class="form-control" autocomplete="off" name="username" required="1">
+              </div> 
+                <div class="form-group">
+                      <label>Password:</label>
+                      <input type="password" class="form-control" name="pwd1" required="1">
+                  </div>
+                  <div class="form-group">
+                    <label>Confirm Password:</label>
+                    <input type="password" class="form-control" name="pwd2" required="1">
+                </div>
+                <div class="form-group">
+                  <label>Birthday:</label>
+                    <input type="date" class="form-control" name="birthday" />
+              </div>
+              <br>    
+              <div class="form-group">
+                <label>School</label>
+                <select class="form-select" name="school_list">
+                  {% for school_name in school_names %}
+                  <option> {{school_name}} </option>
+                  {% endfor %}
+                </select>
+                  </div>
+                  <br>
+                  <div class="form-group">
+                     <button class="btn btn-primary" type="submit">Apply</button>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> 
+                  </div>    
+              </form>   
+          </div>
+      </div>
+  </div>
+</div>
+
+
+{% endblock %}

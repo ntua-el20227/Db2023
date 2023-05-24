@@ -1,6 +1,9 @@
 /* Create the Database */
 
 USE db2023;
+
+SET GLOBAL event_scheduler = ON;
+
 CREATE TABLE IF NOT EXISTS admin
 (
     admin_id INT AUTO_INCREMENT          NOT NULL,
@@ -46,7 +49,6 @@ CREATE TABLE IF NOT EXISTS book
     ISBN      BIGINT      NOT NULL PRIMARY KEY,
     title     VARCHAR(50) NOT NULL,
     summary   TEXT        NOT NULL,
-    /*author    VARCHAR(50) NOT NULL,*/
     publisher VARCHAR(50) NOT NULL,
     page_num  INT         NOT NULL CHECK (page_num > 0),
     category  VARCHAR(50) NOT NULL,
@@ -100,7 +102,6 @@ CREATE TABLE IF NOT EXISTS stores
 
 CREATE TABLE IF NOT EXISTS applications
 (
-    application_id  BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     user_id         BIGINT NOT NULL,
     ISBN            BIGINT NOT NULL,
     start_date      DATE   NOT NULL,
@@ -111,18 +112,18 @@ CREATE TABLE IF NOT EXISTS applications
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT FK_application_ISBN FOREIGN KEY (ISBN)
         REFERENCES book (ISBN)
-        ON DELETE RESTRICT ON UPDATE CASCADE
-
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT compound_PK_applications PRIMARY KEY (user_id, ISBN)
 );
 
 CREATE TABLE review
 (
-    review_id  BIGINT AUTO_INCREMENT PRIMARY KEY,
-    ISBN       BIGINT  NOT NULL,
-    user_id    BIGINT  NOT NULL,
-    evaluation TEXT,
-    like_scale ENUM ('1', '2', '3', '4', '5'),
-    status_    BOOLEAN NOT NULL,
+    review_id       BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ISBN            BIGINT                         NOT NULL,
+    user_id         BIGINT                         NOT NULL,
+    evaluation      TEXT,
+    like_scale      ENUM ('1', '2', '3', '4', '5') NOT NULL,
+    approval_status ENUM ('approved','pending') DEFAULT 'pending',
     CONSTRAINT FK_book_review FOREIGN KEY (ISBN)
         REFERENCES book (ISBN)
         ON DELETE CASCADE ON UPDATE CASCADE,
@@ -131,7 +132,20 @@ CREATE TABLE review
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-/*
+/* If a teacher uploads review then automatically make it active */
+CREATE TRIGGER review_upload
+    AFTER INSERT
+    ON review
+    FOR EACH ROW
+BEGIN
+    IF NEW.approval_status = 'pending' AND (SELECT u.role_name
+                                            FROM user u
+                                                     INNER JOIN NEW N ON u.user_id = N.user_id) = 'teacher'
+    THEN
+        SET NEW.approval_status = 'approved';
+    END IF;
+END;
+
 CREATE TRIGGER trigger_update_dates_on_borrowing
     AFTER UPDATE
     ON applications
@@ -142,11 +156,6 @@ BEGIN
         SET NEW.expiration_date = DATE_ADD(CURRENT_DATE(), INTERVAL 1 WEEK);
     END IF;
 END;
-
-
-/* just a query */
-/*
-
 
 CREATE TRIGGER trigger_update_dates_on_applying
     AFTER INSERT
@@ -159,15 +168,31 @@ BEGIN
     END IF;
 END;
 
-/*
-CREATE EVENT check_not_returned
-    ON SCHEDULE EVERY 1 DAY
-        STARTS '2023-05-14 00:00:00'
+/*Automatically changes the status of the applications to 'expired_borrowing' that expired by checking their expiration date each day*/
+CREATE EVENT check_not_returned_books
+    ON SCHEDULE
+        EVERY 1 DAY
+            STARTS CURRENT_TIMESTAMP
     DO
-    BEGIN
-        -- Enter the SQL query you want to run here
-        SELECT IF book.status_ = 'borrowed' AND new.expiration_date >=  CURRENT_DATE()
+    UPDATE applications
+    SET status_ = 'expired_borrowing'
+    WHERE expiration_date <= NOW()
+      AND status_ = 'borrowed';
 
-    END;
- */
+/*Automatically deletes the applications of the previous year*/
+CREATE EVENT flush_cache
+    ON SCHEDULE
+        EVERY 1 DAY
+            STARTS CURRENT_TIMESTAMP
+    DO
+BEGIN
+    DELETE
+    FROM applications
+    WHERE expiration_date <= MONTH(NOW()) - INTERVAL 1 YEAR
+      AND status_ = 'completed';
+END;
+
+
+
+
 

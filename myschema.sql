@@ -27,13 +27,13 @@ CREATE TABLE IF NOT EXISTS user
     pwd            VARCHAR(50)                                 NOT NULL,
     first_name     VARCHAR(50)                                 NOT NULL,
     last_name      VARCHAR(50)                                 NOT NULL,
-    birth_date     DATE NOT NULL,
+    birth_date     DATE                                        NOT NULL,
     status_usr     ENUM ('active','pending') DEFAULT 'pending' NOT NULL,
     active_borrows TINYINT(5)                DEFAULT 0,
     role_name      ENUM ('student', 'teacher', 'handler')      NOT NULL,
-    school_id      VARCHAR(60)                                 NOT NULL,
-    CONSTRAINT FK_school_email FOREIGN KEY (school_id)
-        REFERENCES school (school_id)
+    school_name    VARCHAR(60)                                 NOT NULL,
+    CONSTRAINT FK_school_name FOREIGN KEY (school_name)
+        REFERENCES school (school_name)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -46,13 +46,34 @@ CREATE TABLE IF NOT EXISTS book
     ISBN      BIGINT      NOT NULL PRIMARY KEY,
     title     VARCHAR(50) NOT NULL,
     summary   TEXT        NOT NULL,
-    author    VARCHAR(50) NOT NULL,
+    /*author    VARCHAR(50) NOT NULL,*/
     publisher VARCHAR(50) NOT NULL,
     page_num  INT         NOT NULL CHECK (page_num > 0),
     category  VARCHAR(50) NOT NULL,
     language_ VARCHAR(50) NOT NULL,
     image     VARCHAR(1000)
 );
+
+CREATE TABLE IF NOT EXISTS author
+(
+    author_id   BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    author_name VARCHAR(60) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS writes
+(
+    ISBN      BIGINT NOT NULL,
+    author_id BIGINT NOT NULL,
+    CONSTRAINT book_written FOREIGN KEY (ISBN)
+        REFERENCES book (ISBN)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT author_writes FOREIGN KEY (author_id)
+        REFERENCES author (author_id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT compound_PK_writes PRIMARY KEY (ISBN, author_id)
+);
+
+
 
 CREATE TABLE IF NOT EXISTS key_words
 (
@@ -64,7 +85,7 @@ CREATE TABLE IF NOT EXISTS key_words
 
 CREATE TABLE IF NOT EXISTS stores
 (
-    school_id      VARCHAR(60) NOT NULL,
+    school_id        VARCHAR(60) NOT NULL,
     ISBN             BIGINT      NOT NULL,
     available_copies INT         NOT NULL CHECK (available_copies >= 0),
     CONSTRAINT school_stores_FK FOREIGN KEY (school_id)

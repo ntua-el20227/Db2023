@@ -6,9 +6,9 @@ SET GLOBAL event_scheduler = ON;
 
 CREATE TABLE IF NOT EXISTS admin
 (
-    admin_id INT AUTO_INCREMENT          NOT NULL,
-    username VARCHAR(50) DEFAULT 'admin' NOT NULL,
-    pwd      VARCHAR(50)                 NOT NULL
+    admin_id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    username VARCHAR(50) DEFAULT 'admin'    NOT NULL,
+    pwd      VARCHAR(50)                    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS school
@@ -74,8 +74,6 @@ CREATE TABLE IF NOT EXISTS writes
         ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT compound_PK_writes PRIMARY KEY (ISBN, author_id)
 );
-
-
 
 CREATE TABLE IF NOT EXISTS key_words
 (
@@ -185,12 +183,12 @@ CREATE EVENT flush_cache
         EVERY 1 DAY
             STARTS CURRENT_TIMESTAMP
     DO
-BEGIN
-    DELETE
-    FROM applications
-    WHERE expiration_date <= MONTH(NOW()) - INTERVAL 1 YEAR
-      AND status_ = 'completed';
-END;
+    BEGIN
+        DELETE
+        FROM applications
+        WHERE expiration_date <= MONTH(NOW()) - INTERVAL 1 YEAR
+          AND status_ = 'completed';
+    END;
 
 
 

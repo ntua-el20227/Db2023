@@ -46,14 +46,14 @@ FROM user;
 
 CREATE TABLE IF NOT EXISTS book
 (
-    ISBN      BIGINT      NOT NULL PRIMARY KEY,
-    title     VARCHAR(50) NOT NULL,
-    summary   TEXT        NOT NULL,
-    publisher VARCHAR(50) NOT NULL,
-    page_num  INT         NOT NULL CHECK (page_num > 0),
-    category  VARCHAR(50) NOT NULL,
-    language_ VARCHAR(50) NOT NULL,
-    image     VARCHAR(1000)
+    ISBN      BIGINT        NOT NULL PRIMARY KEY,
+    title     VARCHAR(50)   NOT NULL,
+    summary   TEXT          NOT NULL,
+    publisher VARCHAR(50)   NOT NULL,
+    page_num  INT           NOT NULL CHECK (page_num > 0),
+    category  VARCHAR(50)   NOT NULL,
+    language_ VARCHAR(50)   NOT NULL,
+    image     VARCHAR(1000) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS author
@@ -85,9 +85,9 @@ CREATE TABLE IF NOT EXISTS key_words
 
 CREATE TABLE IF NOT EXISTS stores
 (
-    school_id        VARCHAR(60) NOT NULL,
-    ISBN             BIGINT      NOT NULL,
-    available_copies INT         NOT NULL CHECK (available_copies >= 0),
+    school_id        BIGINT NOT NULL,
+    ISBN             BIGINT NOT NULL,
+    available_copies INT    NOT NULL CHECK (available_copies >= 0),
     CONSTRAINT school_stores_FK FOREIGN KEY (school_id)
         REFERENCES school (school_id)
         ON DELETE CASCADE ON UPDATE CASCADE,

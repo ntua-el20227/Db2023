@@ -116,7 +116,6 @@ CREATE TABLE IF NOT EXISTS applications
 
 CREATE TABLE review
 (
-    review_id       BIGINT AUTO_INCREMENT PRIMARY KEY,
     ISBN            BIGINT                         NOT NULL,
     user_id         BIGINT                         NOT NULL,
     evaluation      TEXT,
@@ -127,25 +126,26 @@ CREATE TABLE review
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT FK_user_review FOREIGN KEY (user_id)
         REFERENCES user (user_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT compound_PK_review PRIMARY KEY (user_id, ISBN)
 );
 
 /* If a teacher uploads review then automatically make it active */
 CREATE TRIGGER review_upload
-    AFTER INSERT
+    BEFORE INSERT
     ON review
     FOR EACH ROW
 BEGIN
-    IF NEW.approval_status = 'pending' AND (SELECT u.role_name
-                                            FROM user u
-                                                     INNER JOIN NEW N ON u.user_id = N.user_id) = 'teacher'
+    IF NEW.approval_status = 'pending' AND (SELECT user.role_name
+                                            FROM user
+                                            WHERE user.user_id = NEW.user_id) = 'teacher'
     THEN
         SET NEW.approval_status = 'approved';
     END IF;
 END;
 
 CREATE TRIGGER trigger_update_dates_on_borrowing
-    AFTER UPDATE
+    BEFORE UPDATE
     ON applications
     FOR EACH ROW
 BEGIN
@@ -156,7 +156,7 @@ BEGIN
 END;
 
 CREATE TRIGGER trigger_update_dates_on_applying
-    AFTER INSERT
+    BEFORE INSERT
     ON applications
     FOR EACH ROW
 BEGIN

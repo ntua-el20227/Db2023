@@ -84,10 +84,25 @@ def schools():
             query = " SELECT * FROM school"
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
-            schools = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            schools = []
+            info = cur.fetchall()
+            for entry in info:
+                x = dict(zip(column_names, entry))
+                query = f"SELECT * FROM user WHERE role_name = 'handler' and school_name = '{entry[1]}'"
+                cur.execute(query)
+                record = cur.fetchone()          
+                if record:
+                    x["handler_first_name"] = record[3]
+                    x["handler_last_name"] = record[4]
+                else:
+                    x["handler_first_name"] = '-'
+                    x["handler_last_name"] = ''
+                schools.append(x)
             cur.close()
             return render_template('adminschools.html', title = 'Schools', schools = schools) 
     return redirect(url_for('index'))
+
+
 
 
 
@@ -412,3 +427,5 @@ def user_deactivate(user_id):
             return redirect('/schoolpage/userhome/users')
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))
+
+

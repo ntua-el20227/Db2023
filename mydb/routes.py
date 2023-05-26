@@ -448,4 +448,37 @@ WHERE s.school_id = '{school_id}'"""
     return redirect(url_for('index'))
 
 
+@app.route("/schoolpage/userhome/books/create", methods=["POST"])   #checked
+def add_book():
+    if 'username' and "school" in mysession:
+        if mysession['status'] == "handler":
+            cur = db.connection.cursor()
+            isbn = request.form['ISBN']
+            
+            query = f"SELECT * FROM stores WHERE isbn = '{isbn}'"
+            cur.execute(query) 
+            book_exists = cur.fetchone()
+            
+            if book_exists:
+                return render_template('add_available_copies.html',user = mysession['username'], status = mysession['status'], title = 'Books',isbn = isbn)
+            
+            else:
+                return render_template('add_book_attributes.html')
+                
+            query = f"""
+            INSERT INTO school (school_name, school_email, principal_first_name, principal_last_name, city, address, phone_number) 
+            VALUES ('{name}', '{email}', '{principal_first_name}', '{principal_last_name}', '{city}', '{address}', '{(phone_number)}') """
+            try:
+                cur = db.connection.cursor()
+                cur.execute(query)
+                db.connection.commit()
+                cur.close()
+                flash("School added successfully", "success")
+            except Exception as e:
+                flash(str(e), "success")
+            return redirect('/adminhome/schools')
+    return redirect(url_for('index'))
+
+
+
 

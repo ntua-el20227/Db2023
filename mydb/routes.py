@@ -84,10 +84,25 @@ def schools():
             query = " SELECT * FROM school"
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
-            schools = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            schools = []
+            info = cur.fetchall()
+            for entry in info:
+                x = dict(zip(column_names, entry))
+                query = f"SELECT * FROM user WHERE role_name = 'handler' and school_name = '{entry[1]}'"
+                cur.execute(query)
+                record = cur.fetchone()          
+                if record:
+                    x["handler_first_name"] = record[3]
+                    x["handler_last_name"] = record[4]
+                else:
+                    x["handler_first_name"] = '-'
+                    x["handler_last_name"] = ''
+                schools.append(x)
             cur.close()
             return render_template('adminschools.html', title = 'Schools', schools = schools) 
     return redirect(url_for('index'))
+
+
 
 
 
@@ -412,3 +427,58 @@ def user_deactivate(user_id):
             return redirect('/schoolpage/userhome/users')
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))
+
+@app.route('/schoolpage/userhome/books')  #checked
+def books():
+    if 'username' and "school" in mysession:
+        if mysession['status'] == "handler":
+            cur = db.connection.cursor()
+            school_id = mysession["school"]
+            query = f""" SELECT s.ISBN,s.available_copies, b.title, b.summary, b.publisher, b.page_num, b.category, b.language_, b.image
+FROM stores s
+INNER JOIN book b
+ON s.ISBN = b.ISBN
+WHERE s.school_id = '{school_id}'"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            cur.close()
+            return render_template('handlerbooks.html', user = mysession['username'], status = mysession['status'], title = 'Books',books = books)
+        return redirect(url_for('userhome'))
+    return redirect(url_for('index'))
+
+
+@app.route("/schoolpage/userhome/books/create", methods=["POST"])   #checked
+def add_book():
+    if 'username' and "school" in mysession:
+        if mysession['status'] == "handler":
+            cur = db.connection.cursor()
+            isbn = request.form['ISBN']
+            
+            query = f"SELECT * FROM stores WHERE isbn = '{isbn}'"
+            cur.execute(query) 
+            book_exists = cur.fetchone()
+            
+            if book_exists:
+                return render_template('add_available_copies.html',user = mysession['username'], status = mysession['status'], title = 'Books',isbn = isbn)
+            
+            else:
+                return render_template('add_book_attributes.html')
+                
+            query = f"""
+            INSERT INTO school (school_name, school_email, principal_first_name, principal_last_name, city, address, phone_number) 
+            VALUES ('{name}', '{email}', '{principal_first_name}', '{principal_last_name}', '{city}', '{address}', '{(phone_number)}') """
+            try:
+                cur = db.connection.cursor()
+                cur.execute(query)
+                db.connection.commit()
+                cur.close()
+                flash("School added successfully", "success")
+            except Exception as e:
+                flash(str(e), "success")
+            return redirect('/adminhome/schools')
+    return redirect(url_for('index'))
+
+
+
+

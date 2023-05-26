@@ -13,14 +13,14 @@ CREATE TABLE IF NOT EXISTS admin
 
 CREATE TABLE IF NOT EXISTS school
 (
-    school_id            BIGINT      NOT NULL PRIMARY KEY,
-    school_name          VARCHAR(60) NOT NULL UNIQUE,
-    school_email         VARCHAR(60) NOT NULL UNIQUE,
-    principal_first_name VARCHAR(60) NOT NULL,
-    principal_last_name  VARCHAR(60) NOT NULL,
-    city                 VARCHAR(60) NOT NULL,
-    address              VARCHAR(60) NOT NULL,
-    phone_number         TINYINT(20) NOT NULL
+    school_id            BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    school_name          VARCHAR(60)           NOT NULL UNIQUE,
+    school_email         VARCHAR(60)           NOT NULL UNIQUE,
+    principal_first_name VARCHAR(60)           NOT NULL,
+    principal_last_name  VARCHAR(60)           NOT NULL,
+    city                 VARCHAR(60)           NOT NULL,
+    address              VARCHAR(60)           NOT NULL,
+    phone_number         TINYINT(20)           NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS user
@@ -34,15 +34,16 @@ CREATE TABLE IF NOT EXISTS user
     status_usr     ENUM ('active','pending') DEFAULT 'pending' NOT NULL,
     active_borrows TINYINT(5)                DEFAULT 0,
     role_name      ENUM ('student', 'teacher', 'handler')      NOT NULL,
-    school_name    VARCHAR(60)                                 NOT NULL,
-    CONSTRAINT FK_school_name FOREIGN KEY (school_name)
-        REFERENCES school (school_name)
+    school_id      VARCHAR(60)                                 NOT NULL,
+    CONSTRAINT FK_school_id FOREIGN KEY (school_id)
+        REFERENCES school (school_id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
-
+/*
 CREATE VIEW user_age AS
 SELECT YEAR(CURDATE()) - YEAR(birth_date)
 FROM user;
+*/
 
 CREATE TABLE IF NOT EXISTS book
 (
@@ -186,7 +187,7 @@ CREATE EVENT flush_cache
     BEGIN
         DELETE
         FROM applications
-        WHERE expiration_date <= MONTH(NOW()) - INTERVAL 1 YEAR
+        WHERE expiration_date <= MONTH(NOW()) - INTERVAL 3 YEAR
           AND status_ = 'completed';
     END;
 

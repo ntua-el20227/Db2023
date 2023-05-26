@@ -1,61 +1,60 @@
 /*queries*/
 
 /*3.1.1*/
-SELECT applications.application_id, applications.user_id, book.title
-FROM applications
-         INNER JOIN book
-                    ON book.ISBN = applications.ISBN
-WHERE MONTH(applications.start_date) = 1;
+SELECT u.username, b.title, s.school_name
+FROM applications a
+         INNER JOIN user u
+                    ON u.user_id = a.user_id
+         INNER JOIN book b
+                    ON b.ISBN = a.ISBN
+         INNER JOIN school s
+                    ON s.school_id = u.school_id
+WHERE YEAR(a.start_date) = '{2010}';
 
-SELECT applications.application_id, applications.user_id, book.title
-FROM applications
-         INNER JOIN book
-                    ON book.ISBN = applications.ISBN
-WHERE YEAR(applications.start_date) = 2023;
-
-SELECT applications.application_id, applications.user_id, book.title
-FROM applications
-         INNER JOIN book
-                    ON book.ISBN = applications.ISBN
-WHERE (YEAR(applications.start_date) = 2023
-    AND MONTH(applications.start_date) = 1);
+SELECT u.username, b.title, s.school_name
+FROM applications a
+         INNER JOIN user u
+                    ON u.user_id = a.user_id
+         INNER JOIN book b
+                    ON b.ISBN = a.ISBN
+         INNER JOIN school s
+                    ON s.school_id = u.school_id
+WHERE YEAR(a.start_date) = '{2023}'
+  AND MONTH(a.start_date) = '{1,2,3,...,12}';
 
 /*3.1.2*/
 
 /* Prints the authors of the books that have a certain category*/
-CREATE VIEW authors_of_category AS
-SELECT book.author
+SELECT book.ISBN
 FROM book
 WHERE book.category = '%s';
 
 /*Finds teachers that have applied the last year*/
-CREATE VIEW teachers_of_category AS
-SELECT u.first_name, u.last_name, a.ISBN
+
+SELECT au.author_name, u.first_name, u.last_name
 FROM user u
          INNER JOIN applications a
                     ON u.user_id = a.user_id
+         INNER JOIN (SELECT book.ISBN
+                     FROM book
+                     WHERE book.category = 'horror') category
+                    ON category.ISBN = a.ISBN
+         INNER JOIN writes w
+                    ON category.ISBN = w.ISBN
+        INNER JOIN author au
+                    ON w.author_id = au.author_id
 WHERE u.role_name = 'teacher'
   AND a.start_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 1 YEAR);
 
-/*Find the title of that books borrowed by teachers and belong to certain category*/
-/*CREATE VIEW book_title_borrowed_by_teacher_in_last_year_from_a_category AS*/
-SELECT t.first_name, t.last_name, b.title, b.category
-FROM teachers_of_category t
-         INNER JOIN book b on t.ISBN = b.ISBN
-WHERE b.category = '%d';
-
 /*3.1.3*/
-CREATE VIEW younger_teachers_books AS
-SELECT u.*, a.ISBN
+SELECT u.username, u.first_name, u.last_name, COUNT(a.ISBN)
 FROM user u
          INNER JOIN applications a
                     ON u.user_id = a.user_id
-WHERE (u.role_name = 'teacher' AND u.age < 40);
+WHERE u.role_name = 'teacher' AND YEAR(CURRENT_DATE()-u.birth_date) < 40;
 
-SELECT ytb.*,b.title,COUNT(b.ISBN)
-FROM book b
-INNER JOIN younger_teachers_books ytb ON b.ISBN = ytb.ISBN;
 
+/*DONE*/
 
 
 /*3.1.4*/
@@ -71,7 +70,7 @@ WHERE a.ISBN IS NULL;
 CREATE VIEW applications_per_school AS
 SELECT a.application_id, u.school_email
 FROM applications a
-INNER JOIN user u ON u.user_id = a.user_id;
+         INNER JOIN user u ON u.user_id = a.user_id;
 
 
 /*3.2.1*/
@@ -83,7 +82,8 @@ WHERE book.title = '%d';
 
 SELECT book.title, book.author
 FROM book
-WHERE book.title = '%d' AND book.author = '%d';
+WHERE book.title = '%d'
+  AND book.author = '%d';
 
 /*3.3.1*/
 SELECT *
@@ -98,4 +98,15 @@ WHERE applications.user_id = 'login username';
 
 SELECT b.title, aocu.expiration_date
 FROM book b
-INNER JOIN applications_of_certain_user aocu on b.ISBN = aocu.ISBN
+         INNER JOIN applications_of_certain_user aocu on b.ISBN = aocu.ISBN;
+
+SELECT b.*, a.author_name
+FROM (SELECT stores.ISBN FROM stores WHERE stores.school_id = '') q
+         INNER JOIN book b
+                    ON b.ISBN = q.ISBN
+         INNER JOIN writes w
+                    ON w.ISBN = b.ISBN
+         INNER JOIN author a
+                    ON a.author_id = w.author_id
+
+

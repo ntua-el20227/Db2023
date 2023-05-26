@@ -428,4 +428,24 @@ def user_deactivate(user_id):
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))
 
+@app.route('/schoolpage/userhome/books')  #checked
+def books():
+    if 'username' and "school" in mysession:
+        if mysession['status'] == "handler":
+            cur = db.connection.cursor()
+            school_id = mysession["school"]
+            query = f""" SELECT s.ISBN,s.available_copies, b.title, b.summary, b.publisher, b.page_num, b.category, b.language_, b.image
+FROM stores s
+INNER JOIN book b
+ON s.ISBN = b.ISBN
+WHERE s.school_id = '{school_id}'"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            cur.close()
+            return render_template('handlerbooks.html', user = mysession['username'], status = mysession['status'], title = 'Books',books = books)
+        return redirect(url_for('userhome'))
+    return redirect(url_for('index'))
+
+
 

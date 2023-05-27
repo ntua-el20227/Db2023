@@ -65,14 +65,29 @@
 {% endif %}
 
 <div class="row">
-    <h2>Books of school   <br>
+    <h2>Books of our school
     {% if status == "handler" %}
-        <button type="button" class="btn btn-success float-end"
-        data-bs-toggle="modal", data-bs-target="#addmodal">
+      <a href="/schoolpage/userhome/books/create"> <button type="button" class="btn btn-success float-end">
         <i class="bi bi-plus-lg"></i>
-        </button>
+        </button></a>
+        
+     {% endif %}
+     <br></h2>
+     {% if status == "handler" %} 
+     <form action="/schoolpage/userhome/books" method="POST" class="d-flex">
+        <input class="form-control me-2" list="booklist" name="book" placeholder="Search Database for ISBN" aria-label="Search">
+        <datalist id="booklist">
+          {% for book in books %}
+          <option>
+          {{book.ISBN}}
+          </option>  
+          {% endfor %}
+        </datalist>
+
+        <button class="btn btn-outline-primary" type="submit">Search</button>   
+      </form>
     {% endif %}
-        <br></h2>
+    <br>
     
     {% for book in books %}
     <div class="col-3">

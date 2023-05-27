@@ -1,0 +1,91 @@
+{% extends "global_layout.html" %}
+{% block content %}
+{% include "flash_messages.html" %}
+
+<div class="header-blue">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+      <a class="navbar-brand" href="/schoolpage/userhome">School Libraries 📚</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="/schoolpage/userhome/users">Users</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/schoolpage/userhome/books">Books</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="modal", data-bs-target="#pwdmodal" href="/schoolpage/userhome">Change password</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/" onclick="return confirm('Are you sure you want to log out?')"> Logout </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+    <br>
+</div>
+
+<h2> Add a book that does not exist to School Libraries 📚 Database</h2>
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="jumbotron p-3">
+        <div class="card">
+            <div class="row card-body">
+                        <form action="/schoolpage/userhome/books/create" method="POST">
+                        <div class="form-group">
+                            <label>ISBN:</label>
+                            <input type="number" class="form-control" autocomplete="off" name="isbn" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Title:</label>
+                            <input type="text" class="form-control" autocomplete="off" name="title" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Summary:</label>
+                            <textarea name="summary" class="form-control" autocomplete="off" cols="50" rows="8" required="1"></textarea>
+                            
+                        </div>
+                        <div class="form-group">
+                            <label>Author:</label>
+                            <input type="text" class="form-control" autocomplete="off" name="author" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Publisher:</label>
+                            <input type="text" class="form-control"  autocomplete="off" name="publisher" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Pages:</label>
+                            <input type="number" class="form-control" autocomplete="off" name="pages" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Category:</label>
+                            <input type="text" class="form-control"  autocomplete="off" name="category" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Language:</label>
+                            <input type="text" class="form-control" autocomplete="off" name="language" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Image Source (Link):</label>
+                            <input type="text" class="form-control" autocomplete="off" name="image" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Available Copies in School:</label>
+                            <input type="number" class="form-control" autocomplete="off" name="copies" required="1">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" type="submit">Add Book</button>
+                         </div>
+                    </form>
+                </div>        
+            </div>
+        </div>
+    </div>
+</div>    
+{% endblock %}

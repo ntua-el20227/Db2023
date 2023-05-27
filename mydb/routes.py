@@ -452,9 +452,12 @@ def user_deactivate(user_id):
 
 
 
-@app.route('/schoolpage/userhome/books')  #checked
+@app.route('/schoolpage/userhome/books', methods=['GET', 'POST'])  #checked
 def books():
     if 'user' and "school" in mysession:
+        if request.method == 'POST':
+            ISBN = request.form['book'] 
+            return redirect(url_for('/schoolpage/userhome/books/<int:ISBN>/details>/add'))       
         cur = db.connection.cursor()
         school_id = mysession["school"]
         query = f""" SELECT b.*, a.author_name, q.available_copies FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}') q 
@@ -464,6 +467,49 @@ def books():
         books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
         cur.close()
         return render_template('books.html', user = mysession['user'], status = mysession['user'][7], title = 'Books',books = books)
+    return redirect(url_for('index'))
+
+
+
+@app.route('/schoolpage/userhome/books/<int:ISBN>/add', methods=['GET', 'POST'])  #checked
+def add_book(ISBN):
+    if 'user' and "school" in mysession:
+        if mysession['user'][7] == "handler":
+            if request.method == 'POST':
+                copies = request.form['copies']
+
+        
+            cur = db.connection.cursor()
+            school_id = mysession["school"]
+            query = f""" SELECT b.*, a.author_name, q.available_copies FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}' AND stores.ISBN='{ISBN}') q 
+            INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN writes w ON w.ISBN = b.ISBN INNER JOIN author a ON a.author_id = w.author_id"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            book = dict(zip(column_names, cur.fetchone()))
+            return render_template('bookadd.html', book = book)
+        return redirect(url_for('userhome'))
+    return redirect(url_for('index'))
+
+
+
+@app.route('/schoolpage/userhome/books/create', methods=['GET', 'POST'])  
+def new_book():
+    if 'user' and "school" in mysession:
+        if mysession['user'][7] == "handler":
+            if request.method == 'POST':
+                ISBN = request.form['isbn']
+                title = request.form['title']
+                summary = request.form['summary']
+                birthday = request.form['birthday']
+                author = request.form['author']
+                publisher = request.form=['publisher']
+                pages = request.form=['pages']
+                category = request.form=['category']
+                language = request.form=['language']
+                image = request.form=['image']
+                copies = request.form=['copies']
+            return render_template('bookcreate.html', title = 'Add a Book')
+        return redirect(url_for('userhome'))
     return redirect(url_for('index'))
 
 

@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS user
     status_usr     ENUM ('active','pending') DEFAULT 'pending' NOT NULL,
     active_borrows TINYINT(5)                DEFAULT 0,
     role_name      ENUM ('student', 'teacher', 'handler')      NOT NULL,
-    school_name     VARCHAR(60)                                      NOT NULL,
+    school_name    VARCHAR(60)                                 NOT NULL,
     CONSTRAINT FK_school_name FOREIGN KEY (school_name)
         REFERENCES school (school_name)
         ON DELETE CASCADE ON UPDATE CASCADE
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS user
 CREATE TABLE IF NOT EXISTS book
 (
     ISBN      BIGINT        NOT NULL PRIMARY KEY,
-    title     VARCHAR(100)   NOT NULL,
+    title     VARCHAR(100)  NOT NULL,
     summary   TEXT          NOT NULL,
     publisher VARCHAR(50)   NOT NULL,
     page_num  INT           NOT NULL CHECK (page_num > 0),
@@ -54,8 +54,8 @@ CREATE TABLE IF NOT EXISTS book
 
 CREATE TABLE IF NOT EXISTS author
 (
-    author_id   BIGINT    AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    author_name VARCHAR(100) NOT NULL UNIQUE
+    author_id   BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    author_name VARCHAR(100)          NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS writes
@@ -82,9 +82,9 @@ CREATE TABLE IF NOT EXISTS key_words
 
 CREATE TABLE IF NOT EXISTS stores
 (
-    school_id        BIGINT NOT NULL,
-    ISBN             BIGINT NOT NULL,
-    available_copies INT    NOT NULL CHECK (available_copies >= 0),
+    school_id        BIGINT AUTO_INCREMENT NOT NULL,
+    ISBN             BIGINT                NOT NULL,
+    available_copies INT                   NOT NULL CHECK (available_copies >= 0),
     CONSTRAINT school_stores_FK FOREIGN KEY (school_id)
         REFERENCES school (school_id)
         ON DELETE CASCADE ON UPDATE CASCADE,
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS stores
 
 CREATE TABLE IF NOT EXISTS applications
 (
-    user_id         BIGINT                                                      NOT NULL,
+    user_id         BIGINT AUTO_INCREMENT                                       NOT NULL,
     ISBN            BIGINT                                                      NOT NULL,
     start_date      DATE                                                        NOT NULL,
     expiration_date DATE                                                        NOT NULL CHECK (expiration_date > start_date),

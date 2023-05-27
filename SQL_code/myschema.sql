@@ -34,16 +34,16 @@ CREATE TABLE IF NOT EXISTS user
     status_usr     ENUM ('active','pending') DEFAULT 'pending' NOT NULL,
     active_borrows TINYINT(5)                DEFAULT 0,
     role_name      ENUM ('student', 'teacher', 'handler')      NOT NULL,
-    school_id      BIGINT                                      NOT NULL,
-    CONSTRAINT FK_school_id FOREIGN KEY (school_id)
-        REFERENCES school (school_id)
+    school_name     VARCHAR(60)                                      NOT NULL,
+    CONSTRAINT FK_school_name FOREIGN KEY (school_name)
+        REFERENCES school (school_name)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS book
 (
     ISBN      BIGINT        NOT NULL PRIMARY KEY,
-    title     VARCHAR(50)   NOT NULL,
+    title     VARCHAR(100)   NOT NULL,
     summary   TEXT          NOT NULL,
     publisher VARCHAR(50)   NOT NULL,
     page_num  INT           NOT NULL CHECK (page_num > 0),

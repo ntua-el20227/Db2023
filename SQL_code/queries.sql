@@ -100,13 +100,14 @@ SELECT b.title, aocu.expiration_date
 FROM book b
          INNER JOIN applications_of_certain_user aocu on b.ISBN = aocu.ISBN;
 
-SELECT b.*, a.author_name
-FROM (SELECT stores.ISBN FROM stores WHERE stores.school_id = '') q
+
+/* Returns the book attributes the author of the book and the available
+   copies from a given school*/
+SELECT b.*, a.author_name, q.available_copies
+FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '') q
          INNER JOIN book b
                     ON b.ISBN = q.ISBN
          INNER JOIN writes w
                     ON w.ISBN = b.ISBN
          INNER JOIN author a
-                    ON a.author_id = w.author_id
-
-
+                    ON a.author_id = w.author;

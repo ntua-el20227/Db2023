@@ -34,16 +34,11 @@ CREATE TABLE IF NOT EXISTS user
     status_usr     ENUM ('active','pending') DEFAULT 'pending' NOT NULL,
     active_borrows TINYINT(5)                DEFAULT 0,
     role_name      ENUM ('student', 'teacher', 'handler')      NOT NULL,
-    school_id      VARCHAR(60)                                 NOT NULL,
+    school_id      BIGINT                                      NOT NULL,
     CONSTRAINT FK_school_id FOREIGN KEY (school_id)
         REFERENCES school (school_id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
-/*
-CREATE VIEW user_age AS
-SELECT YEAR(CURDATE()) - YEAR(birth_date)
-FROM user;
-*/
 
 CREATE TABLE IF NOT EXISTS book
 (
@@ -59,8 +54,8 @@ CREATE TABLE IF NOT EXISTS book
 
 CREATE TABLE IF NOT EXISTS author
 (
-    author_id   BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    author_name VARCHAR(60) NOT NULL UNIQUE
+    author_id   BIGINT       NOT NULL PRIMARY KEY,
+    author_name VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS writes
@@ -78,10 +73,11 @@ CREATE TABLE IF NOT EXISTS writes
 
 CREATE TABLE IF NOT EXISTS key_words
 (
-    word VARCHAR(50) NOT NULL PRIMARY KEY UNIQUE,
+    word VARCHAR(50) NOT NULL,
     ISBN BIGINT      NOT NULL,
     CONSTRAINT book_key_words FOREIGN KEY (ISBN)
-        REFERENCES book (ISBN)
+        REFERENCES book (ISBN),
+    CONSTRAINT compound_PK_key_words PRIMARY KEY (word, ISBN)
 );
 
 CREATE TABLE IF NOT EXISTS stores
@@ -101,11 +97,11 @@ CREATE TABLE IF NOT EXISTS stores
 
 CREATE TABLE IF NOT EXISTS applications
 (
-    user_id         BIGINT NOT NULL,
-    ISBN            BIGINT NOT NULL,
-    start_date      DATE   NOT NULL,
-    expiration_date DATE   NOT NULL CHECK (expiration_date > start_date),
-    status_         ENUM ('applied','borrowed','expired_borrowing','completed'),
+    user_id         BIGINT                                                      NOT NULL,
+    ISBN            BIGINT                                                      NOT NULL,
+    start_date      DATE                                                        NOT NULL,
+    expiration_date DATE                                                        NOT NULL CHECK (expiration_date > start_date),
+    status_         ENUM ('applied','borrowed','expired_borrowing','completed') NOT NULL,
     CONSTRAINT FK_application_user FOREIGN KEY (user_id)
         REFERENCES user (user_id)
         ON DELETE CASCADE ON UPDATE CASCADE,
@@ -122,6 +118,7 @@ CREATE TABLE review
     evaluation      TEXT,
     like_scale      ENUM ('1', '2', '3', '4', '5') NOT NULL,
     approval_status ENUM ('approved','pending') DEFAULT 'pending',
+
     CONSTRAINT FK_book_review FOREIGN KEY (ISBN)
         REFERENCES book (ISBN)
         ON DELETE CASCADE ON UPDATE CASCADE,

@@ -110,4 +110,4 @@ FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.schoo
          INNER JOIN writes w
                     ON w.ISBN = b.ISBN
          INNER JOIN author a
-                    ON a.author_id = w.author;
+                    ON a.author_id = w.author_id;

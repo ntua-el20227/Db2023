@@ -457,11 +457,18 @@ def books():
     if 'user' and "school" in mysession:
         if request.method == 'POST':
             ISBN = request.form['book'] 
-            return redirect(url_for('/schoolpage/userhome/books/<int:ISBN>/details>/add'))       
+            cur = db.connection.cursor()
+            query = f"SELECT * FROM book WHERE ISBN='{ISBN}'"
+            cur.execute(query)
+            record=cur.fetchone()
+            if record:
+                return redirect(f'/schoolpage/userhome/books/{ISBN}/add')  
+            flash("ISBN does not exists in database.") 
+            return  redirect('/schoolpage/userhome/books')
         cur = db.connection.cursor()
         school_id = mysession["school"]
-        query = f""" SELECT b.*, a.author_name, q.available_copies FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}') q 
-        INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN writes w ON w.ISBN = b.ISBN INNER JOIN author a ON a.author_id = w.author_id"""
+        query = f"""SELECT b.*, a.author_name, q.available_copies, c.category FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}') q 
+        INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN categories c ON b.ISBN = c.ISBN INNER JOIN author a ON a.ISBN = b.ISBN"""
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -476,13 +483,23 @@ def add_book(ISBN):
     if 'user' and "school" in mysession:
         if mysession['user'][7] == "handler":
             if request.method == 'POST':
-                copies = request.form['copies']
-
-        
+                ISBN = request.form['isbn']
+                copies = request.form["copies"]
+                id = mysession["school"]
+                try:
+                    cur = db.connection.cursor()
+                    query = f"""INSERT INTO stores(school_id, ISBN, available_copies) VALUES ('{id}',{ISBN},{copies})"""
+                    cur.execute(query)
+                    db.connection.commit()
+                    flash("Book added successfully!", "success")                   
+                except Exception as e:
+                    flash(str(e), "success")
+                return redirect(url_for('books'))
+            
+                        
             cur = db.connection.cursor()
-            school_id = mysession["school"]
-            query = f""" SELECT b.*, a.author_name, q.available_copies FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}' AND stores.ISBN='{ISBN}') q 
-            INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN writes w ON w.ISBN = b.ISBN INNER JOIN author a ON a.author_id = w.author_id"""
+            query = f"""SELECT b.*, a.author_name,c.category FROM book b INNER JOIN author a ON b.ISBN = a.ISBN
+                    INNER JOIN categories c ON c.ISBN = b.ISBN WHERE b.ISBN = '{ISBN}'"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             book = dict(zip(column_names, cur.fetchone()))
@@ -500,14 +517,34 @@ def new_book():
                 ISBN = request.form['isbn']
                 title = request.form['title']
                 summary = request.form['summary']
-                birthday = request.form['birthday']
                 author = request.form['author']
-                publisher = request.form=['publisher']
-                pages = request.form=['pages']
-                category = request.form=['category']
-                language = request.form=['language']
-                image = request.form=['image']
-                copies = request.form=['copies']
+                publisher = request.form['publisher']
+                pages_num = request.form['pages']
+                category = request.form['category']
+                language = request.form['language']
+                image = request.form['image']
+                copies = request.form['copies']
+                id = mysession["school"]
+                try:
+                    cur = db.connection.cursor()
+                    query = f"""INSERT INTO book (ISBN, title, summary, publisher, page_num, language_, image) VALUES ({ISBN},"{title}","{summary}","{publisher}",{pages_num},"{language}","{image}")"""
+                    cur.execute(query)
+                    db.connection.commit()
+                    query = f"""INSERT INTO categories(category, ISBN) VALUES ("{category}",{ISBN})"""
+                    cur.execute(query)
+                    db.connection.commit()
+                    query = f"""INSERT INTO author(ISBN, author_name) VALUES ({ISBN},"{author}")"""
+                    cur.execute(query)
+                    db.connection.commit()
+                    query = f"""INSERT INTO stores(school_id, ISBN, available_copies) VALUES ("{id}", "{ISBN}","{copies}")"""
+                    cur.execute(query)
+                    db.connection.commit()
+                    flash("New Book added successfully!", "success") 
+                except Exception as e:
+                    flash(str(e), "success")
+                return redirect(url_for('books'))
+                    
+                    
             return render_template('bookcreate.html', title = 'Add a Book')
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))
@@ -534,8 +571,8 @@ def bookdetails(ISBN):
         
         cur = db.connection.cursor()
         school_id = mysession["school"]
-        query = f""" SELECT b.*, a.author_name, q.available_copies FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}' AND stores.ISBN='{ISBN}') q 
-        INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN writes w ON w.ISBN = b.ISBN INNER JOIN author a ON a.author_id = w.author_id"""
+        query = f"""SELECT b.*, a.author_name, q.available_copies,c.category FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}' AND stores.ISBN='{ISBN}') q 
+        INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN categories c ON b.ISBN = c.ISBN INNER JOIN author a ON a.ISBN = b.ISBN """
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         book = dict(zip(column_names, cur.fetchone()))

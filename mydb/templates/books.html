@@ -75,16 +75,9 @@
      <br></h2>
      {% if status == "handler" %} 
      <form action="/schoolpage/userhome/books" method="POST" class="d-flex">
-        <input class="form-control me-2" list="booklist" name="book" placeholder="Search Database for ISBN" aria-label="Search">
-        <datalist id="booklist">
-          {% for book in books %}
-          <option>
-          {{book.ISBN}}
-          </option>  
-          {% endfor %}
-        </datalist>
+        <input class="form-control me-2" autocomplete="off" type="number" name="book" placeholder="Search Database for ISBN" aria-label="Search" >
 
-        <button class="btn btn-outline-primary" type="submit">Search</button>   
+        <button class="btn btn-outline-primary" type="submit">Search to Add</button>   
       </form>
     {% endif %}
     <br>

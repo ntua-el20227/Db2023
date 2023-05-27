@@ -45,7 +45,7 @@
                     <img  src="{{book.image}}">
                 </div>
                     <div class="col-8">
-                        <form action="/schoolpage/userhome/{{book.ISBN}}/details" method="POST">
+                        <form action="/schoolpage/userhome/books/{{book.ISBN}}/add" method="POST">
                         <div class="form-group">
                             <label>ISBN:</label>
                             <input type="number" class="form-control" value="{{book.ISBN}}" autocomplete="off" name="isbn" readonly>

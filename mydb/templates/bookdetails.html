@@ -94,7 +94,7 @@
                         </div>
                         <div class="form-group">
                             <label>Author:</label>
-                            <input type="text" class="form-control" value="{{book.author}}" autocomplete="off" name="author" required="1">
+                            <input type="text" class="form-control" value="{{book.author_name}}" autocomplete="off" name="author" required="1">
                         </div>
                         <div class="form-group">
                             <label>Publisher:</label>
@@ -140,7 +140,7 @@
                     </div>
                     <div class="form-group">
                         <label>Author:</label>
-                        <input type="text" class="form-control" value="{{book.author}}" autocomplete="off" name="author" readonly>
+                        <input type="text" class="form-control" value="{{book.author_name}}" autocomplete="off" name="author" readonly>
                     </div>
                     <div class="form-group">
                         <label>Publisher:</label>
@@ -157,10 +157,6 @@
                     <div class="form-group">
                         <label>Language:</label>
                         <input type="text" class="form-control" value="{{book.language_}}" autocomplete="off" name="language" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Image:</label>
-                        <input type="text" class="form-control" value="{{book.image}}" autocomplete="off" name="image" readonly>
                     </div>
                     <div class="form-group">
                         <label>Available Copies in School:</label>

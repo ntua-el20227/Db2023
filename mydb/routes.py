@@ -68,8 +68,8 @@ def adminpwd():
                 cur.execute(query)
                 db.connection.commit()
                 cur.close()
-                flash("Password successfully changed", "success")
-                return redirect(url_for('adminhome'))
+                flash("Password successfully changed. Please log in again!", "success")
+                return redirect(url_for('index'))
             flash("Passwords do not match", "success")
             return redirect(url_for('adminhome'))
     return redirect(url_for('index')) 
@@ -119,7 +119,7 @@ def new_school():
             address = request.form['address']
             phone_number = request.form['phone_number']
             query = f"""
-            INSERT INTO school (school_name, email, principal_first_name, principal_last_name, city, address, phone_number) 
+            INSERT INTO school (school_name, school_email, principal_first_name, principal_last_name, city, address, phone_number) 
             VALUES ('{name}', '{email}', '{principal_first_name}', '{principal_last_name}', '{city}', '{address}', '{phone_number}') """
             try:
                 cur = db.connection.cursor()
@@ -147,7 +147,7 @@ def school_edit(school_id):
             address = request.form['address']
             phone_number = request.form['phone_number']
             query = f"""
-            UPDATE school SET school_name = '{name}', email = '{email}', principal_first_name = '{principal_first_name}', principal_last_name = '{principal_last_name}', city = '{city}'
+            UPDATE school SET school_name = '{name}', school_email = '{email}', principal_first_name = '{principal_first_name}', principal_last_name = '{principal_last_name}', city = '{city}'
             , address = '{address}', phone_number = '{phone_number}' WHERE school_id='{school_id}'"""
             try:
                 cur = db.connection.cursor()
@@ -352,10 +352,10 @@ def userpwd():
             cur.execute(query)
             db.connection.commit()
             cur.close()
-            flash("Password successfully changed", "success")
+            flash("Password successfully changed. Please log in again!", "success")
             return redirect(url_for('userhome'))
         flash("Passwords do not match", "success")
-        return redirect(url_for('userhome'))
+        return redirect(url_for('index'))
     return redirect(url_for('index')) 
 
 
@@ -375,10 +375,10 @@ def profile():
             cur.execute(query)
             db.connection.commit()
             cur.close()
-            flash("Profile updated successfully", "success")
+            flash("Profile updated successfully. Please log in again!", "success")
         except Exception as e:
             flash(str(e), "success")
-        return redirect(url_for('userhome'))
+        return redirect(url_for('index'))
     return redirect(url_for('index')) 
 
 
@@ -457,8 +457,8 @@ def books():
     if 'user' and "school" in mysession:
         cur = db.connection.cursor()
         school_id = mysession["school"]
-        query = f""" SELECT s.ISBN,s.available_copies, b.title, b.summary, b.publisher, b.page_num, b.category, b.language_, b.image
-FROM stores s INNER JOIN book b ON s.ISBN = b.ISBN WHERE s.school_id = '{school_id}'"""
+        query = f""" SELECT b.*, a.author_name, q.available_copies FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}') q 
+        INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN writes w ON w.ISBN = b.ISBN INNER JOIN author a ON a.author_id = w.author_id"""
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -488,8 +488,8 @@ def bookdetails(ISBN):
         
         cur = db.connection.cursor()
         school_id = mysession["school"]
-        query = f""" SELECT s.ISBN,s.available_copies, b.title, b.summary, b.publisher, b.page_num, b.category, b.language_, b.image
-FROM stores s INNER JOIN book b ON s.ISBN = b.ISBN WHERE s.school_id = '{school_id}' and s.ISBN='{ISBN}'"""
+        query = f""" SELECT b.*, a.author_name, q.available_copies FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}' AND stores.ISBN='{ISBN}') q 
+        INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN writes w ON w.ISBN = b.ISBN INNER JOIN author a ON a.author_id = w.author_id"""
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         book = dict(zip(column_names, cur.fetchone()))

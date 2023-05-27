@@ -86,7 +86,7 @@
                         {% for school in schools %}
                             <tr>
                                 <td> {{ school.school_name }} </td>
-                                <td> {{ school.email }} </td>
+                                <td> {{ school.school_email }} </td>
                                 <td> {{ school.principal_first_name }} {{ school.principal_last_name }} </td>
                                 <td> {{ school.handler_first_name }} {{ school.handler_last_name }} </td>
                                 <td> {{ school.city }} </td>
@@ -114,7 +114,7 @@
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Email:</label>
-                                                    <input type="email" autocomplete="off" value="{{school.email}}" class="form-control" name="email" required="1">
+                                                    <input type="email" autocomplete="off" value="{{school.school_email}}" class="form-control" name="email" required="1">
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Principal First Name:</label>

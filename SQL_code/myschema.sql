@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS school
     principal_last_name  VARCHAR(60)           NOT NULL,
     city                 VARCHAR(100)          NOT NULL,
     address              VARCHAR(100)          NOT NULL,
-    phone_number         TINYINT(20)           NOT NULL
+    phone_number         INT(50)               NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS user

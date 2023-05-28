@@ -467,8 +467,12 @@ def books():
             return  redirect('/schoolpage/userhome/books')
         cur = db.connection.cursor()
         school_id = mysession["school"]
-        query = f"""SELECT b.*, a.author_name, q.available_copies, c.category FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}') q 
-        INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN categories c ON b.ISBN = c.ISBN INNER JOIN author a ON a.ISBN = b.ISBN"""
+        query = f"""SELECT b.*, q.available_copies, GROUP_CONCAT(a.author_name SEPARATOR ', ') AS author_names, GROUP_CONCAT(c.category SEPARATOR ', ') AS book_categories
+        FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}') q 
+        INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN categories c ON q.ISBN = c.ISBN
+        INNER JOIN author a on q.ISBN = a.ISBN
+        GROUP BY b.ISBN, b.title
+        """
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -571,8 +575,13 @@ def bookdetails(ISBN):
         
         cur = db.connection.cursor()
         school_id = mysession["school"]
-        query = f"""SELECT b.*, a.author_name, q.available_copies,c.category FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}' AND stores.ISBN='{ISBN}') q 
-        INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN categories c ON b.ISBN = c.ISBN INNER JOIN author a ON a.ISBN = b.ISBN """
+        query = f""" SELECT b.*, s.available_copies, GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ', ') AS author_names, 
+                     GROUP_CONCAT(DISTINCT c.category ORDER BY c.category SEPARATOR ', ') AS book_categories
+                     FROM (SELECT book.* FROM book WHERE book.ISBN = {ISBN}) b INNER JOIN author a on  a.ISBN = b.ISBN
+                     INNER JOIN categories c on c.ISBN = b.ISBN
+                     INNER JOIN stores s on s.ISBN = b.ISBN 
+                     WHERE s.school_id = {school_id}
+                     GROUP BY b.ISBN, b.title"""
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         book = dict(zip(column_names, cur.fetchone()))

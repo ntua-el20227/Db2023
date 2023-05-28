@@ -38,8 +38,8 @@ def adminlogin():
     record = cur.fetchone()
     cur.close()
     if record:
-        mysession['username'] = record[1]
         mysession['status'] = "admin"
+        mysession['user'] = username
         return redirect(url_for('adminhome'))
     flash("Wrong credentials", "success")
     return redirect(url_for('index'))
@@ -48,28 +48,28 @@ def adminlogin():
 
 @app.route('/adminhome')     #checked
 def adminhome():
-    if 'username' in mysession:
+    if 'status' in mysession:
         if mysession['status'] == "admin":
-            return render_template('adminhome.html', user = mysession['username'], title='Home Page')
+            return render_template('adminhome.html', title='Home Page')
     return redirect(url_for('index')) 
 
 
 
 @app.route('/adminhome/pwd', methods = ['POST'])      #checked
 def adminpwd():
-    if 'username' in mysession:
+    if 'status' in mysession:
         if mysession['status'] == "admin":
             pwd1 = request.form['pwd1']
             pwd2 = request.form['pwd2']
             if pwd1 == pwd2:
                 cur = db.connection.cursor()
                 query = f"""UPDATE admin SET pwd = '{pwd1}'
-            WHERE username = '{mysession['username']}'"""
+            WHERE username = '{mysession['user']}'"""
                 cur.execute(query)
                 db.connection.commit()
                 cur.close()
-                flash("Password successfully changed. Please log in again!", "success")
-                return redirect(url_for('index'))
+                flash("Password successfully changed", "success")
+                return redirect(url_for('adminhome'))
             flash("Passwords do not match", "success")
             return redirect(url_for('adminhome'))
     return redirect(url_for('index')) 
@@ -78,7 +78,7 @@ def adminpwd():
 
 @app.route('/adminhome/schools')  #checked
 def schools():
-    if 'username' in mysession:
+    if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
             query = " SELECT * FROM school"
@@ -108,7 +108,7 @@ def schools():
 
 @app.route("/adminhome/schools/create", methods=["POST"])   #checked
 def new_school():
-    if 'username' in mysession:
+    if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
             name = request.form['name']
@@ -136,7 +136,7 @@ def new_school():
 
 @app.route("/adminhome/schools/<int:school_id>/edit", methods=["POST"])   #checked
 def school_edit(school_id):
-    if 'username' in mysession:
+    if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
             name = request.form['name']
@@ -164,7 +164,7 @@ def school_edit(school_id):
 
 @app.route("/adminhome/schools/<int:school_id>/delete")  #checked
 def school_delete(school_id):
-    if 'username' in mysession:
+    if 'status' in mysession:
         if mysession['status'] == "admin":
             query = f"DELETE FROM school WHERE school_id = '{school_id}'"
             cur = db.connection.cursor()
@@ -181,7 +181,7 @@ def school_delete(school_id):
 
 @app.route('/adminhome/handlers')  #checked
 def handlers():
-    if 'username' in mysession:
+    if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
             query = " SELECT * FROM user where role_name = 'handler'"
@@ -196,7 +196,7 @@ def handlers():
 
 @app.route('/adminhome/handlers/<int:handler_id>/accept')
 def handler_accept(handler_id):
-    if 'username' in mysession:
+    if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
             query = f" UPDATE user SET status_usr = 'active' WHERE user_id = '{handler_id}'"
@@ -214,7 +214,7 @@ def handler_accept(handler_id):
 
 @app.route('/adminhome/handlers/<int:handler_id>/reject')
 def handler_reject(handler_id):
-    if 'username' in mysession:
+    if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
             query = f"DELETE FROM user WHERE user_id = '{handler_id}'"
@@ -352,10 +352,11 @@ def userpwd():
             cur.execute(query)
             db.connection.commit()
             cur.close()
-            flash("Password successfully changed. Please log in again!", "success")
+            flash("Password successfully changed", "success")
+            mysession["user"][1]=pwd1
             return redirect(url_for('userhome'))
         flash("Passwords do not match", "success")
-        return redirect(url_for('index'))
+        return redirect(url_for('userhome'))
     return redirect(url_for('index')) 
 
 
@@ -375,10 +376,14 @@ def profile():
             cur.execute(query)
             db.connection.commit()
             cur.close()
-            flash("Profile updated successfully. Please log in again!", "success")
+            mysession['user'][0]=username
+            mysession['user'][2]=first_name
+            mysession['user'][3]=last_name
+            mysession['user'][4]=birthday
+            flash("Profile updated successfully", "success")
         except Exception as e:
             flash(str(e), "success")
-        return redirect(url_for('index'))
+        return redirect(url_for('userhome'))
     return redirect(url_for('index')) 
 
 

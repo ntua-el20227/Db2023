@@ -521,25 +521,31 @@ def new_book():
                 ISBN = request.form['isbn']
                 title = request.form['title']
                 summary = request.form['summary']
-                author = request.form['author']
+                authors = request.form['author']
+                author_names = authors.split(',')
                 publisher = request.form['publisher']
                 pages_num = request.form['pages']
-                category = request.form['category']
+                categories = request.form['category']
+                category_names = categories.split(',')
                 language = request.form['language']
                 image = request.form['image']
                 copies = request.form['copies']
                 id = mysession["school"]
+                
+                
                 try:
                     cur = db.connection.cursor()
                     query = f"""INSERT INTO book (ISBN, title, summary, publisher, page_num, language_, image) VALUES ({ISBN},"{title}","{summary}","{publisher}",{pages_num},"{language}","{image}")"""
                     cur.execute(query)
                     db.connection.commit()
-                    query = f"""INSERT INTO categories(category, ISBN) VALUES ("{category}",{ISBN})"""
-                    cur.execute(query)
-                    db.connection.commit()
-                    query = f"""INSERT INTO author(ISBN, author_name) VALUES ({ISBN},"{author}")"""
-                    cur.execute(query)
-                    db.connection.commit()
+                    for category in category_names:
+                        query = f"""INSERT INTO categories(category, ISBN) VALUES ("{category}",{ISBN})"""
+                        cur.execute(query)
+                        db.connection.commit()
+                    for author in author_names:    
+                        query = f"""INSERT INTO author(ISBN, author_name) VALUES ({ISBN},"{author}")"""
+                        cur.execute(query)
+                        db.connection.commit()
                     query = f"""INSERT INTO stores(school_id, ISBN, available_copies) VALUES ("{id}", "{ISBN}","{copies}")"""
                     cur.execute(query)
                     db.connection.commit()
@@ -554,25 +560,61 @@ def new_book():
     return redirect(url_for('index'))
 
 
-
 @app.route('/schoolpage/userhome/books/<int:ISBN>/details', methods=['GET', 'POST'])  #checked
 def bookdetails(ISBN):
     if 'user' and "school" in mysession:
         if request.method == 'POST':
-            new_ISBN = request.form['isbn']
-            title = request.form['title']
-            summary = request.form['summary']
-            birthday = request.form['birthday']
-            author = request.form['author']
-            publisher = request.form=['publisher']
-            pages = request.form=['pages']
-            category = request.form=['category']
-            language = request.form=['language']
-            image = request.form=['image']
-            copies = request.form=['copies']
-            cur = db.connection.cursor()
-   
-        
+            if mysession['user'][7] == "handler":
+                if "update" in request.form:
+                    new_ISBN = request.form['isbn']
+                    title = request.form['title']
+                    summary = request.form['summary']
+                    authors = request.form['authors']
+                    author_names = authors.split(',')
+                    publisher = request.form['publisher']
+                    pages_num = request.form['pages']
+                    categories = request.form['category']
+                    category_names = categories.split(',')
+                    language = request.form['language']
+                    image = request.form['image']
+                    copies = request.form['copies']
+                    id = mysession["school"]
+                    
+                    try:
+                        cur = db.connection.cursor()
+                        query = f"""UPDATE book SET ISBN={new_ISBN},title='{title}',summary="{summary}",publisher='{publisher}',page_num={pages_num},language_='{language}',image='{image}' WHERE ISBN = {ISBN}"""
+                        cur.execute(query)
+                        db.connection.commit()                        
+                        query = f"""DELETE FROM categories WHERE ISBN = {new_ISBN}"""
+                        cur.execute(query)
+                        db.connection.commit()
+                        for category in category_names:
+                            query = f"""INSERT INTO categories(category, ISBN) VALUES ("{category}",{new_ISBN})"""
+                            cur.execute(query)
+                            db.connection.commit()                           
+                        query = f"""DELETE FROM author WHERE ISBN = {new_ISBN}"""
+                        cur.execute(query)
+                        db.connection.commit()   
+                        for author in author_names:    
+                            query = f"""INSERT INTO author(ISBN, author_name) VALUES ({new_ISBN},"{author}")"""
+                            cur.execute(query)
+                            db.connection.commit()                    
+                        query = f"""UPDATE  stores SET available_copies = {copies} WHERE school_id = {id} AND ISBN = {new_ISBN} """
+                        cur.execute(query)
+                        db.connection.commit  
+                        flash("Book edited successfully!", "success") 
+                    except Exception as e:
+                        flash(str(e), "success")
+                    return redirect(url_for('books'))
+                if "delete" in request.form:                    
+                    id = mysession["school"]
+                    cur = db.connection.cursor()
+                    query = f"""DELETE FROM stores WHERE ISBN = {ISBN} AND school_id = {id}"""
+                    cur.execute(query)
+                    db.connection.commit()
+                    flash("Book deleted successfully!", "success")
+                    return redirect(url_for('books'))
+
         cur = db.connection.cursor()
         school_id = mysession["school"]
         query = f""" SELECT b.*, s.available_copies, GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ', ') AS author_names, 

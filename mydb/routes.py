@@ -241,7 +241,7 @@ def handlerapplication():
     try:
         cur = db.connection.cursor()
         school_name = request.form['school_list']
-        query = f"INSERT INTO user (first_name, last_name, username, pwd, school_name, role_name) VALUES ('{first_name}', '{last_name}', '{username}' ,'{pwd1}', '{school_name}', 'handler')"
+        query = f"INSERT INTO user (first_name, last_name, birth_date, username, pwd, school_name, role_name) VALUES ('{first_name}', '{last_name}', DATE '{birthday}', '{username}' ,'{pwd1}', '{school_name}', 'handler')"
         cur.execute(query)
         db.connection.commit()
         cur.close()
@@ -317,7 +317,7 @@ def register():
         if pwd1 != pwd2:
             flash("Passwords do not match", "success")
             return redirect(url_for('schoolpage'))
-        query = f"INSERT INTO user (first_name, last_name, username, pwd, school_name, role_name, status_usr) VALUES ('{first_name}', '{last_name}', '{username}', '{pwd1}', '{school_name}', '{role}', 'Pending')"
+        query = f"INSERT INTO user (first_name, last_name, birth_date, username, pwd, school_name, role_name, status_usr) VALUES ('{first_name}', '{last_name}', '{birthday}' ,'{username}', '{pwd1}', '{school_name}', '{role}', 'Pending')"
         try:
             cur = db.connection.cursor()
             cur.execute(query)
@@ -368,7 +368,7 @@ def profile():
         last_name = request.form['last_name']
         birthday = request.form['birthday']
         cur = db.connection.cursor()
-        query = f"""UPDATE user SET username = '{username}', first_name = '{first_name}', last_name = '{last_name}' 
+        query = f"""UPDATE user SET username = '{username}', first_name = '{first_name}', last_name = '{last_name}', birth_date = DATE '{birthday}' 
              WHERE username = '{mysession['user'][0]}'"""
         try:
             cur = db.connection.cursor()
@@ -629,6 +629,9 @@ def bookdetails(ISBN):
         book = dict(zip(column_names, cur.fetchone()))
         return render_template('bookdetails.html', user = mysession['user'], status = mysession['user'][7], title = 'Details',book = book)
     return redirect(url_for('index'))
+
+
+
 
 
 

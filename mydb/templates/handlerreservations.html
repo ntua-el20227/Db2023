@@ -43,60 +43,31 @@
                             <tr>
                                 <th>First Name</th>
                                 <th>Last Name</th>
-                                <th>Active Borrows</th>
+                                <th>Role</th>
                                 <th>Teacher/Student</th>
+                                <th>ISBN</th>
+                                <th>Title</th>
+                                <th>Reservation made at</th>
+                                <th>Reservation expires at</th>
                             </tr>
                         </thead>
                         <tbody>
-                        {% for user in users %}
+                        {% for reservation in reservations %}
                             <tr>
-                                {% if user.status_usr == 'pending' %}
-                                <td> {{ user.first_name}} </td>
-                                <td> {{ user.last_name}} </td>
-                                <td> {{ user.active_borrows}} </td>
-                                <td>{{ user.role_name }}</td>
+                                <td> {{reservation.first_name}} </td>
+                                <td> {{reservation.last_name}} </td>
+                                <td> {{reservation.role_name}} </td>
+                                <td> {{reservation.ISBN}} </td>
+                                <td>{{reservation.title}}</td>
+                                <td>{{reservation.start_date}} </td>
+                                <td>{{reservation.exp_date}}</td>
                                 <td>
-                                    <a href="/schoolpage/userhome/users/{{user.user_id}}/accept"> <button class="btn btn-success btn-xs"> <i class="bi bi-check2"></i>  </button></a>
+                                    <a href="/schoolpage/userhome/reservations/{{reservation.user_id}}/{{reservation.ISBN}}/accept"> <button class="btn btn-success btn-xs"> <i class="bi bi-check2"></i>  </button></a>
                                     
-                                    <a href="/schoolpage/userhome/users/{{user.user_id}}/reject"> <button class="btn btn-danger btn-xs"
+                                    <a href="/schoolpage/userhome/reservations/{{reservation.user_id}}/{{reservation.ISBN}}/reject"> <button class="btn btn-danger btn-xs"
                                     onclick="return confirm('Are you sure you want to Reject?')" > <i class="bi bi-x-lg"></i> </button></a>
                                 </td>
                             </tr>
-                            {% endif %}
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <br>
-            <h2>Active Users</h2>
-            <div class="card" id="card-container">
-                <div class="card-body" id="card">
-                    <table class="table table-striped table-sm table-borderless">
-                        <thead>
-                            <tr>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Active Borrows</th>
-                                <th>Teacher/Student</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for user in users %}
-                            <tr>
-                                {% if user.status_usr == 'active' %}
-                                <td> {{ user.first_name}} </td>
-                                <td> {{ user.last_name}} </td>
-                                <td> {{ user.active_borrows}} </td>
-                                <td> {{ user.role_name}} </td>
-                                <td>
-                                    <a href="/schoolpage/userhome/users/{{user.user_id}}/deactivate"> <button class="btn btn-dark btn-xs"
-                                        onclick="return confirm('Are you sure you want to Deactivate?')" > <i class="bi bi-pause-fill"></i> </button></a> 
-                                    <a href="/schoolpage/userhome/users/{{user.user_id}}/reject"> <button class="btn btn-danger btn-xs"
-                                        onclick="return confirm('Are you sure you want to Delete?')" > <i class="bi bi-x-lg"></i> </button></a>   
-                                </td>
-                            </tr>
-                            {% endif %}
                         {% endfor %}
                         </tbody>
                     </table>

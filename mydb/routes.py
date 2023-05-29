@@ -287,7 +287,7 @@ def login():
         if record:
             is_active = record[6]
             if is_active == "active":
-                mysession['user'] = [record[i] for i in range(1, 10)]
+                mysession['user'] = record
                 return redirect(url_for('userhome'))
             flash("User is not activated yet", "success")
             return redirect(url_for('schoolpage'))
@@ -335,7 +335,7 @@ def register():
 @app.route('/schoolpage/userhome')   #checked
 def userhome():
    if 'user' and "school" in mysession:  
-        return render_template('userhome.html', user = mysession['user'], status=mysession['user'][7] , title='Home Page')
+        return render_template('userhome.html', user = mysession['user'], status=mysession['user'][8] , title='Home Page')
    return redirect(url_for('index')) 
 
 
@@ -348,12 +348,12 @@ def userpwd():
         if pwd1 == pwd2:
             cur = db.connection.cursor()
             query = f"""UPDATE user SET pwd = '{pwd1}'
-            WHERE username = '{mysession['user'][0]}'"""
+            WHERE user_id = {mysession['user'][0]}"""
             cur.execute(query)
             db.connection.commit()
             cur.close()
             flash("Password successfully changed", "success")
-            mysession["user"][1]=pwd1
+            mysession["user"][2]=pwd1
             return redirect(url_for('userhome'))
         flash("Passwords do not match", "success")
         return redirect(url_for('userhome'))
@@ -370,16 +370,16 @@ def profile():
         birthday = request.form['birthday']
         cur = db.connection.cursor()
         query = f"""UPDATE user SET username = '{username}', first_name = '{first_name}', last_name = '{last_name}', birth_date = DATE '{birthday}' 
-             WHERE username = '{mysession['user'][0]}'"""
+             WHERE user_id = '{mysession['user'][0]}'"""
         try:
             cur = db.connection.cursor()
             cur.execute(query)
             db.connection.commit()
             cur.close()
-            mysession['user'][0]=username
-            mysession['user'][2]=first_name
-            mysession['user'][3]=last_name
-            mysession['user'][4]=birthday
+            mysession['user'][1]=username
+            mysession['user'][3]=first_name
+            mysession['user'][4]=last_name
+            mysession['user'][5]=birthday
             flash("Profile updated successfully", "success")
         except Exception as e:
             flash(str(e), "success")
@@ -391,7 +391,7 @@ def profile():
 @app.route('/schoolpage/userhome/users')
 def users():
     if "user" and "school" in mysession:
-        if mysession["user"][7] == "handler":
+        if mysession["user"][8] == "handler":
             cur = db.connection.cursor()
             id = mysession["school"]
             query = f"SELECT * FROM school WHERE school_id='{id}'"
@@ -403,7 +403,7 @@ def users():
             column_names = [i[0] for i in cur.description]
             users = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
             cur.close()
-            return render_template('handlerusers.html', user = mysession['user'], title = 'Users', users = users)
+            return render_template('handlerusers.html', title = 'Users', users = users)
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))        
 
@@ -412,7 +412,7 @@ def users():
 @app.route('/schoolpage/userhome/users/<int:user_id>/accept')
 def user_accept(user_id):
     if 'user' and "school" in mysession:
-        if mysession['user'][7] == "handler":
+        if mysession['user'][8] == "handler":
             cur = db.connection.cursor()
             query = f" UPDATE user SET status_usr = 'active' WHERE user_id = '{user_id}'"
             cur.execute(query)
@@ -428,7 +428,7 @@ def user_accept(user_id):
 @app.route('/schoolpage/userhome/users/<int:user_id>/reject')
 def user_reject(user_id):
     if 'user' and "school" in mysession:
-        if mysession['user'][7] == "handler":
+        if mysession['user'][8] == "handler":
             cur = db.connection.cursor()
             query = f"DELETE FROM user WHERE user_id = '{user_id}'"
             cur.execute(query)
@@ -444,7 +444,7 @@ def user_reject(user_id):
 @app.route('/schoolpage/userhome/users/<int:user_id>/deactivate')
 def user_deactivate(user_id):
     if 'user' and "school" in mysession:
-        if mysession['user'][7] == "handler":
+        if mysession['user'][8] == "handler":
             cur = db.connection.cursor()
             query = f" UPDATE user SET status_usr = 'pending' WHERE user_id = '{user_id}'"
             cur.execute(query)
@@ -482,7 +482,7 @@ def books():
         column_names = [i[0] for i in cur.description]
         books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
         cur.close()
-        return render_template('books.html', user = mysession['user'], status = mysession['user'][7], title = 'Books',books = books)
+        return render_template('books.html', user = mysession['user'], status = mysession['user'][8], title = 'Books',books = books)
     return redirect(url_for('index'))
 
 
@@ -490,7 +490,7 @@ def books():
 @app.route('/schoolpage/userhome/books/<int:ISBN>/add', methods=['GET', 'POST'])  #checked
 def add_book(ISBN):
     if 'user' and "school" in mysession:
-        if mysession['user'][7] == "handler":
+        if mysession['user'][8] == "handler":
             if request.method == 'POST':
                 ISBN = request.form['isbn']
                 copies = request.form["copies"]
@@ -521,7 +521,7 @@ def add_book(ISBN):
 @app.route('/schoolpage/userhome/books/create', methods=['GET', 'POST'])  
 def new_book():
     if 'user' and "school" in mysession:
-        if mysession['user'][7] == "handler":
+        if mysession['user'][8] == "handler":
             if request.method == 'POST':
                 ISBN = request.form['isbn']
                 title = request.form['title']
@@ -569,7 +569,7 @@ def new_book():
 def bookdetails(ISBN):
     if 'user' and "school" in mysession:
         if request.method == 'POST':
-            if mysession['user'][7] == "handler":
+            if mysession['user'][8] == "handler":
                 if "update" in request.form:
                     new_ISBN = request.form['isbn']
                     title = request.form['title']
@@ -619,6 +619,17 @@ def bookdetails(ISBN):
                     db.connection.commit()
                     flash("Book deleted successfully!", "success")
                     return redirect(url_for('books'))
+            if "reserve" in request.form: 
+                try:
+                    id = mysession["user"][0]
+                    mysession['user'][9]+=1
+                    query =f"""INSERT INTO applications(user_id, ISBN) VALUES ({id}, {ISBN})"""
+                    cur.execute(query)
+                    db.connection.commit()
+                    flash("Book reserved successfully!", "success")
+                except Exception as e:
+                    flash(str(e), "success")
+                return redirect(url_for('books'))
 
         cur = db.connection.cursor()
         school_id = mysession["school"]
@@ -632,8 +643,33 @@ def bookdetails(ISBN):
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         book = dict(zip(column_names, cur.fetchone()))
-        return render_template('bookdetails.html', user = mysession['user'], status = mysession['user'][7], title = 'Details',book = book)
+        return render_template('bookdetails.html', user = mysession['user'], status = mysession['user'][8], title = 'Details',book = book)
     return redirect(url_for('index'))
+
+
+
+@app.route('/schoolpage/userhome/reservations')
+def reservations():
+    if "user" and "school" in mysession:
+        if mysession["user"][8] == "handler":
+            cur = db.connection.cursor()
+            id = mysession["school"]
+            query = f"SELECT * FROM school WHERE school_id='{id}'"
+            cur.execute(query)
+            record=cur.fetchone()
+            school_name=record[1]
+            query = f""" SELECT u.user_id u.first_name,u.last_name,u.role_name,b.ISBN,b.title,a.start_date,a.exp_date
+FROM applications a
+INNER JOIN user u ON a.user_id = u.user_id 
+INNER JOIN book b ON a.ISBN = b.ISBN
+WHERE a.status_ = "applied" AND u.school_name = "{school_name}" """
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            reservations = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            cur.close()
+            return render_template('handlerreservations.html', title = 'Reservations', reservations = reservations)
+        return redirect(url_for('userhome'))
+    return redirect(url_for('index'))        
 
 
 

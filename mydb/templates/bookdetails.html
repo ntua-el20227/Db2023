@@ -18,6 +18,9 @@
             <a class="nav-link" href="/schoolpage/userhome/books">Books</a>
           </li>
           <li class="nav-item">
+            <a class="nav-link" href="/schoolpage/userhome/reservations">Reservation Requests</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" data-bs-toggle="modal", data-bs-target="#pwdmodal" href="/schoolpage/userhome">Change password</a>
           </li>
           <li class="nav-item">
@@ -166,7 +169,7 @@
                         <input type="number" class="form-control" value="{{book.available_copies}}" autocomplete="off" name="copies" readonly>
                     </div>
                     <div class="form-group">
-                        <button class="btn btn-primary" type="submit">Reserve</button>
+                        <button class="btn btn-primary" name="reserve" type="submit">Reserve</button>
                      </div>
 
                     {% endif %}
@@ -216,36 +219,36 @@
                 <form action="/schoolpage/userhome/editprofile" method="POST">
                     <div class="form-group">
                         <label>Username:</label>
-                        <input type="text" class="form-control" name="username" value="{{user[0]}}" required="1">
+                        <input type="text" class="form-control" name="username" value="{{user[1]}}" required="1">
                     </div>
                     <div class="form-group">
                         <label>Password:</label>
-                        <input type="text" class="form-control" name="username" value="{{user[1]}}" readonly>
+                        <input type="text" class="form-control" name="username" value="{{user[2]}}" readonly>
                     </div>
                     <div class="form-group">
                         <label>First Name:</label>
-                        <input type="text" class="form-control" name="first_name" value="{{user[2]}}" required="1">
-                    </div>
-                    <div class="form-group">
-                        <label>First Name:</label>
-                        <input type="text" class="form-control" name="first_name" value="{{user[2]}}" required="1">
+                        <input type="text" class="form-control" name="first_name" value="{{user[3]}}" required="1">
                     </div>
                     <div class="form-group">
                         <label>Last Name:</label>
-                        <input type="text" class="form-control" name="last_name" value="{{user[3]}}" required="1">
+                        <input type="text" class="form-control" name="last_name" value="{{user[4]}}" required="1">
                     </div>
                     <div class="form-group">
                         <label>Birthday:</label>
-                        <input type="date" class="form-control" name="birthday" value="{{user[4]}}" required="1">
+                        <input type="date" class="form-control" name="birthday" value="{{user[5]}}" required="1">
                     </div>
                     <div class="form-group">
                       <label>Active Borrows:</label>
-                      <input type="text" class="form-control" value="{{user[6]}}" readonly>
+                      <input type="text" class="form-control" value="{{user[7]}}" readonly>
                   </div>
                     <div class="form-group">
                       <label>Teacher/Student:</label>
-                      <input type="text" class="form-control" value="{{user[7]}}" readonly>
+                      <input type="text" class="form-control"  value="{{user[8]}}" readonly>
                   </div>
+                  <div class="form-group">
+                    <label>School:</label>
+                    <input type="text" class="form-control"  value="{{user[9]}}" readonly>
+                </div>
                     <div class="form-group">
                        <button class="btn btn-primary" type="submit">Update</button>
                     </div>
@@ -256,36 +259,36 @@
                 {% else %}
                     <div class="form-group">
                         <label>Username:</label>
-                        <input type="text" class="form-control" name="username" value="{{user[0]}}" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Password:</label>
                         <input type="text" class="form-control" name="username" value="{{user[1]}}" readonly>
                     </div>
                     <div class="form-group">
-                        <label>First Name:</label>
-                        <input type="text" class="form-control" name="first_name" value="{{user[2]}}" readonly>
+                        <label>Password:</label>
+                        <input type="text" class="form-control" name="username" value="{{user[2]}}" readonly>
                     </div>
                     <div class="form-group">
                         <label>First Name:</label>
-                        <input type="text" class="form-control" name="first_name" value="{{user[2]}}" readonly>
+                        <input type="text" class="form-control" name="first_name" value="{{user[3]}}" readonly>
                     </div>
                     <div class="form-group">
                         <label>Last Name:</label>
-                        <input type="text" class="form-control" name="last_name" value="{{user[3]}}" readonly>
+                        <input type="text" class="form-control" name="last_name" value="{{user[4]}}" readonly>
                     </div>
                     <div class="form-group">
                         <label>Birthday:</label>
-                        <input type="birthday" class="form-control" name="birthday" value="{{user[4]}}" readonly>
+                        <input type="birthday" class="form-control" name="birthday" value="{{user[5]}}" readonly>
                     </div>
                     <div class="form-group">
                       <label>Active Borrows:</label>
-                      <input type="text" class="form-control" value="{{user[6]}}" readonly>
+                      <input type="text" class="form-control" value="{{user[7]}}" readonly>
                   </div>
                     <div class="form-group">
                       <label>Teacher/Student:</label>
-                      <input type="text" class="form-control" value="{{user[7]}}" readonly>
+                      <input type="text" class="form-control" value="{{user[8]}}" readonly>
                   </div>
+                  <div class="form-group">
+                    <label>School:</label>
+                    <input type="text" class="form-control"  value="{{user[9]}}" readonly>
+                </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> 
                     </div>    
@@ -295,6 +298,7 @@
         </div>
     </div>
   </div>
+
 
 
 {% endblock %}

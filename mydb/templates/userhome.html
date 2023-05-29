@@ -1,7 +1,7 @@
 {% extends "global_layout.html" %}
 {% block content %}
 {% include "flash_messages.html" %}
-{% if status == "handler" %}
+{% if user['role'] == "handler" %}
 <div class="header-blue">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
@@ -100,39 +100,43 @@
               <h4 class="modal-title">Profile</h4>
           </div>
           <div class="modal-body">
-          {% if status == "teacher"%}
+          {% if user['role'] == "teacher"%}
               <form action="/schoolpage/userhome/editprofile" method="POST">
                   <div class="form-group">
                       <label>Username:</label>
-                      <input type="text" class="form-control" name="username" value="{{user[1]}}" required="1">
+                      <input type="text" class="form-control" name="username" value="{{user['username']}}" required="1">
                   </div>
                   <div class="form-group">
                       <label>Password:</label>
-                      <input type="text" class="form-control" name="username" value="{{user[2]}}" readonly>
+                      <input type="text" class="form-control" name="pwd" value="{{user['pwd']}}" required="1">
                   </div>
                   <div class="form-group">
                       <label>First Name:</label>
-                      <input type="text" class="form-control" name="first_name" value="{{user[3]}}" required="1">
+                      <input type="text" class="form-control" name="first_name" value="{{user['first_name']}}" required="1">
                   </div>
                   <div class="form-group">
                       <label>Last Name:</label>
-                      <input type="text" class="form-control" name="last_name" value="{{user[4]}}" required="1">
+                      <input type="text" class="form-control" name="last_name" value="{{user['last_name']}}" required="1">
                   </div>
                   <div class="form-group">
                       <label>Birthday:</label>
-                      <input type="date" class="form-control" name="birthday" value="{{user[5]}}" required="1">
+                      <input type="date" class="form-control" name="birthday" value="{{user['birthday']}}" required="1">
                   </div>
                   <div class="form-group">
+                    <label>Active Reservations:</label>
+                    <input type="text" class="form-control" value="{{user['active_reservations']}}" readonly>
+                </div>
+                  <div class="form-group">
                     <label>Active Borrows:</label>
-                    <input type="text" class="form-control" value="{{user[7]}}" readonly>
+                    <input type="text" class="form-control" value="{{user['active_borrows']}}" readonly>
                 </div>
                   <div class="form-group">
                     <label>Teacher/Student:</label>
-                    <input type="text" class="form-control"  value="{{user[8]}}" readonly>
+                    <input type="text" class="form-control"  value="{{user['role']}}" readonly>
                 </div>
                 <div class="form-group">
                   <label>School:</label>
-                  <input type="text" class="form-control"  value="{{user[9]}}" readonly>
+                  <input type="text" class="form-control"  value="{{user['school_name']}}" readonly>
               </div>
                   <div class="form-group">
                      <button class="btn btn-primary" type="submit">Update</button>
@@ -142,41 +146,45 @@
                   </div>    
               </form>  
               {% else %}
-                  <div class="form-group">
-                      <label>Username:</label>
-                      <input type="text" class="form-control" name="username" value="{{user[1]}}" readonly>
-                  </div>
-                  <div class="form-group">
-                      <label>Password:</label>
-                      <input type="text" class="form-control" name="username" value="{{user[2]}}" readonly>
-                  </div>
-                  <div class="form-group">
-                      <label>First Name:</label>
-                      <input type="text" class="form-control" name="first_name" value="{{user[3]}}" readonly>
-                  </div>
-                  <div class="form-group">
-                      <label>Last Name:</label>
-                      <input type="text" class="form-control" name="last_name" value="{{user[4]}}" readonly>
-                  </div>
-                  <div class="form-group">
-                      <label>Birthday:</label>
-                      <input type="birthday" class="form-control" name="birthday" value="{{user[5]}}" readonly>
-                  </div>
-                  <div class="form-group">
-                    <label>Active Borrows:</label>
-                    <input type="text" class="form-control" value="{{user[7]}}" readonly>
-                </div>
-                  <div class="form-group">
-                    <label>Teacher/Student:</label>
-                    <input type="text" class="form-control" value="{{user[8]}}" readonly>
-                </div>
-                <div class="form-group">
-                  <label>School:</label>
-                  <input type="text" class="form-control"  value="{{user[9]}}" readonly>
-              </div>
-                  <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> 
-                  </div>    
+              <div class="form-group">
+                <label>Username:</label>
+                <input type="text" class="form-control" value="{{user['username']}}" readonly>
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="text" class="form-control" value="{{user['pwd']}}" readonly>
+            </div>
+            <div class="form-group">
+                <label>First Name:</label>
+                <input type="text" class="form-control"  value="{{user['first_name']}}" readonly>
+            </div>
+            <div class="form-group">
+                <label>Last Name:</label>
+                <input type="text" class="form-control"  value="{{user['last_name']}}" readonly>
+            </div>
+            <div class="form-group">
+                <label>Birthday:</label>
+                <input type="date" class="form-control" value="{{user['birthday']}}" readonly>
+            </div>
+            <div class="form-group">
+              <label>Active Reservations:</label>
+              <input type="text" class="form-control" value="{{user['active_reservations']}}" readonly>
+          </div>
+            <div class="form-group">
+              <label>Active Borrows:</label>
+              <input type="text" class="form-control" value="{{user['active_borrows']}}" readonly>
+          </div>
+            <div class="form-group">
+              <label>Teacher/Student:</label>
+              <input type="text" class="form-control"  value="{{user['role']}}" readonly>
+          </div>
+          <div class="form-group">
+            <label>School:</label>
+            <input type="text" class="form-control"  value="{{user['school_name']}}" readonly>
+        </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> 
+            </div>    
               {% endif %}
 
           </div>

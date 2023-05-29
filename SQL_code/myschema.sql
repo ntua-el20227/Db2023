@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS school
     principal_last_name  VARCHAR(60)           NOT NULL,
     city                 VARCHAR(100)          NOT NULL,
     address              VARCHAR(100)          NOT NULL,
-    phone_number         INT(50)               NOT NULL
+    phone_number         BIGINT                NOT NULL
 );
 CREATE TABLE IF NOT EXISTS user
 (
@@ -174,12 +174,14 @@ CREATE EVENT check_not_returned_books
     SET status_ = 'expired_borrowing'
     WHERE expiration_date <= NOW()
       AND status_ = 'borrowed';
+
 CREATE EVENT check_applications
     ON SCHEDULE
         EVERY 5 MINUTE
             STARTS CURRENT_TIMESTAMP
     DO
-    DELETE FROM applications
+    DELETE
+    FROM applications
     WHERE expiration_date <= NOW()
       AND status_ = 'applied';
 /*Automatically deletes the applications of the previous year*/
@@ -245,10 +247,12 @@ BEGIN
 END;
 
 CREATE TRIGGER enforce_one_reservation_for_teacher
-    BEFORE INSERT ON applications
+    BEFORE INSERT
+    ON applications
     FOR EACH ROW
 BEGIN
-    IF (SELECT u.role_name FROM user u WHERE u.user_id = NEW.user_id) = 'teacher' AND (SELECT u.active_reservations FROM user u WHERE u.user_id = NEW.user_id) = 1 THEN
+    IF (SELECT u.role_name FROM user u WHERE u.user_id = NEW.user_id) = 'teacher' AND
+       (SELECT u.active_reservations FROM user u WHERE u.user_id = NEW.user_id) = 1 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Teacher can only borrow 2 books';
     END IF;
 END;

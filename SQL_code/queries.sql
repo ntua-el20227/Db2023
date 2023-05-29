@@ -111,3 +111,9 @@ FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.schoo
                     ON w.ISBN = b.ISBN
          INNER JOIN author a
                     ON a.author_id = w.author_id;
+
+SELECT u.user_id,u.first_name,u.last_name,u.role_name,b.ISBN,b.title,a.start_date,a.exp_date
+FROM applications a
+         INNER JOIN user u ON a.user_id = u.user_id
+         INNER JOIN book b ON a.ISBN = b.ISBN
+WHERE a.status_ = 'applied' AND u.school_name = '{school_name}'

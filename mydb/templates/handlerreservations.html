@@ -43,7 +43,6 @@
                             <tr>
                                 <th>First Name</th>
                                 <th>Last Name</th>
-                                <th>Role</th>
                                 <th>Teacher/Student</th>
                                 <th>ISBN</th>
                                 <th>Title</th>
@@ -60,7 +59,7 @@
                                 <td> {{reservation.ISBN}} </td>
                                 <td>{{reservation.title}}</td>
                                 <td>{{reservation.start_date}} </td>
-                                <td>{{reservation.exp_date}}</td>
+                                <td>{{reservation.expiration_date}}</td>
                                 <td>
                                     <a href="/schoolpage/userhome/reservations/{{reservation.user_id}}/{{reservation.ISBN}}/accept"> <button class="btn btn-success btn-xs"> <i class="bi bi-check2"></i>  </button></a>
                                     

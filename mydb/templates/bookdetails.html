@@ -125,12 +125,13 @@
                         </div>
                         <div class="form-group">
                             <button class="btn btn-primary" type="submit" name="update">Update Book</button>
-                            <button class="btn btn-danger btn-xs" name="delete" type="sublmit"
+                            <button class="btn btn-danger btn-xs" name="delete" type="submit"
                                 onclick="return confirm('Are you sure you want to Delete?')" > <i class="bi bi-trash"></i>  </button>
                         </div>
                         
                     </form>
                     {% else %}
+                        <form action="/schoolpage/userhome/books/{{book.ISBN}}/details" method="POST">
                     <div class="form-group">
                         <label>ISBN:</label>
                         <input type="number" class="form-control" value="{{book.ISBN}}" autocomplete="off" name="isbn" readonly>
@@ -171,7 +172,7 @@
                     <div class="form-group">
                         <button class="btn btn-primary" name="reserve" type="submit">Reserve</button>
                      </div>
-
+                        </form>
                     {% endif %}
                     </div>
             </div>

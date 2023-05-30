@@ -1,0 +1,127 @@
+{% extends "global_layout.html" %}
+{% block content %}
+{% include "flash_messages.html" %}
+{% if user['role'] == "handler" %}
+        {% include "handlernavbar.html" %}
+    {% else %}
+        {% include "usernavbar.html" %}
+        {% include "profilemodal.html" %}
+    {% endif %}
+{% include "pwdmodal.html" %}
+
+
+
+<h2>{{book.title}}</h2>
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="jumbotron p-3">
+        <div class="card">
+            <div class="row card-body">
+                <div class="col-4">
+                    <img  src="{{book.image}}" style="width: 250px; height: auto;">
+                </div>
+                    <div class="col-8">
+                    {% if user['role'] == "handler" %}
+                        <form action="/schoolpage/userhome/books/{{book.ISBN}}/details" method="POST">
+                        <div class="form-group">
+                            <label>ISBN:</label>
+                            <input type="number" class="form-control" value="{{book.ISBN}}" autocomplete="off" name="isbn" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Title:</label>
+                            <input type="text" class="form-control" value="{{book.title}}" autocomplete="off" name="title" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Summary:</label>
+                            <textarea name="summary" class="form-control" autocomplete="off" cols="50" rows="8" required="1">{{book.summary}}</textarea>
+                            
+                        </div>
+                        <div class="form-group">
+                            <label>Author:</label>
+                            <input type="text" class="form-control" value="{{book.author_names}}" autocomplete="off" name="authors" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Publisher:</label>
+                            <input type="text" class="form-control" value="{{book.publisher}}" autocomplete="off" name="publisher" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Pages:</label>
+                            <input type="number" class="form-control" value="{{book.page_num}}" autocomplete="off" name="pages" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Category:</label>
+                            <input type="text" class="form-control" value="{{book.book_categories}}" autocomplete="off" name="category" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Language:</label>
+                            <input type="text" class="form-control" value="{{book.language_}}" autocomplete="off" name="language" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Image:</label>
+                            <input type="text" class="form-control" value="{{book.image}}" autocomplete="off" name="image" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Available Copies in School:</label>
+                            <input type="number" class="form-control" value="{{book.available_copies}}" autocomplete="off" name="copies" required="1">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" type="submit" name="update">Update Book</button>
+                            <button class="btn btn-danger btn-xs" name="delete" type="submit"
+                                onclick="return confirm('Are you sure you want to Delete?')" > <i class="bi bi-trash"></i>  </button>
+                        </div>
+                        
+                    </form>
+                    {% else %}
+                        <form action="/schoolpage/userhome/books/{{book.ISBN}}/details" method="POST">
+                    <div class="form-group">
+                        <label>ISBN:</label>
+                        <input type="number" class="form-control" value="{{book.ISBN}}" autocomplete="off" name="isbn" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" class="form-control" value="{{book.title}}" autocomplete="off" name="title" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Summary:</label>
+                        <textarea name="summary" class="form-control" autocomplete="off" cols="50" rows="8" readonly>{{book.summary}}</textarea>
+                        
+                    </div>
+                    <div class="form-group">
+                        <label>Author:</label>
+                        <input type="text" class="form-control" value="{{book.author_names}}" autocomplete="off" name="author" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Publisher:</label>
+                        <input type="text" class="form-control" value="{{book.publisher}}" autocomplete="off" name="publisher" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Pages:</label>
+                        <input type="number" class="form-control" value="{{book.page_num}}" autocomplete="off" name="pages" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Category:</label>
+                        <input type="text" class="form-control" value="{{book.book_categories}}" autocomplete="off" name="category" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Language:</label>
+                        <input type="text" class="form-control" value="{{book.language_}}" autocomplete="off" name="language" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Available Copies in School:</label>
+                        <input type="number" class="form-control" value="{{book.available_copies}}" autocomplete="off" name="copies" readonly>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" name="reserve" type="submit">Reserve</button>
+                     </div>
+                        </form>
+                    {% endif %}
+                    </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

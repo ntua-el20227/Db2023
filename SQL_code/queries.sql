@@ -1,26 +1,26 @@
 /*queries*/
 
 /*3.1.1*/
-SELECT u.username, b.title, s.school_name
+SELECT u.username, b.title, u.school_name
 FROM applications a
          INNER JOIN user u
                     ON u.user_id = a.user_id
          INNER JOIN book b
                     ON b.ISBN = a.ISBN
-         INNER JOIN school s
-                    ON s.school_id = u.school_id
-WHERE YEAR(a.start_date) = '{2010}';
+WHERE YEAR(a.start_date) = '{2010}'
+GROUP BY u.school_name;
 
-SELECT u.username, b.title, s.school_name
+SELECT u.username, b.title, u.school_name
 FROM applications a
          INNER JOIN user u
                     ON u.user_id = a.user_id
          INNER JOIN book b
                     ON b.ISBN = a.ISBN
          INNER JOIN school s
-                    ON s.school_id = u.school_id
+                    ON s.school_name = u.school_name
 WHERE YEAR(a.start_date) = '{2023}'
-  AND MONTH(a.start_date) = '{1,2,3,...,12}';
+  AND MONTH(a.start_date) = '{1,2,3,...,12}'
+GROUP BY u.school_name;
 
 /*3.1.2*/
 

@@ -37,7 +37,7 @@ END;
 /*Automatically changes the status of the applications to 'expired_borrowing' that expired by checking their expiration date each day*/
 CREATE EVENT check_not_returned_books
     ON SCHEDULE
-        EVERY 2 MINUTE
+        EVERY 30 SECOND
             STARTS NOW()
     DO
     UPDATE applications
@@ -73,31 +73,49 @@ END;
    expired_borrowing->completed
 */
 
-CREATE TRIGGER trigger_update_active_borrows    
+CREATE TRIGGER trigger_update_active_borrows
     BEFORE UPDATE
     ON applications
-    FOR EACH ROW  
+    FOR EACH ROW
 BEGIN
-    IF NEW.status_ = 'borrowed' AND OLD.status_ = 'applied' (WHERE application_id ={application_id}) THEN
+    IF NEW.status_ = 'borrowed' AND OLD.status_ = 'applied' THEN
         UPDATE user
-        SET active_borrows = active_borrows + 1, active_reservations = active_reservations - 1
+        SET active_borrows      = active_borrows + 1,
+            active_reservations = active_reservations - 1
         WHERE user.user_id = NEW.user_id;
+        UPDATE stores
+        SET stores.available_copies = stores.available_copies - 1
+        WHERE stores.ISBN = NEW.ISBN
+          AND (SELECT s.school_id
+               FROM (SELECT user.school_name FROM user WHERE user.user_id = NEW.user_id) u
+                        INNER JOIN school s ON s.school_name = u.school_name);
 
     ELSEIF NEW.status_ = 'completed' AND OLD.status_ = 'borrowed' THEN
         UPDATE user
         SET active_borrows = active_borrows - 1
         WHERE user.user_id = NEW.user_id;
+        UPDATE stores
+        SET available_copies = available_copies + 1
+        WHERE stores.ISBN = NEW.ISBN
+          AND (SELECT s.school_id
+               FROM (SELECT user.school_name FROM user WHERE user.user_id = NEW.user_id) u
+                        INNER JOIN school s ON s.school_name = u.school_name);
 
-    ELSEIF NEW.status_= 'completed' AND OLD.status_ = 'expired_borrowing'  THEN
+    ELSEIF NEW.status_ = 'completed' AND OLD.status_ = 'expired_borrowing' THEN
         UPDATE user
-        SET active_borrows = active_borrows-1
+        SET active_borrows = active_borrows - 1
         WHERE user.user_id = NEW.user_id;
-    
-    ELSEIF NEW.status_ = 'borrowed' AND OLD.status_ = 'completed' THEN
-         SET NEW.status_ = OLD.status_;
+        UPDATE stores
+        SET available_copies = available_copies + 1
+        WHERE stores.ISBN = NEW.ISBN
+          AND (SELECT s.school_id
+               FROM (SELECT user.school_name FROM user WHERE user.user_id = NEW.user_id) u
+                        INNER JOIN school s ON s.school_name = u.school_name);
 
+        /*ELSEIF NEW.status_ = 'borrowed' AND OLD.status_ = 'completed' THEN
+             SET NEW.status_ = OLD.status_;*/
     ELSE
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid order in application';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid transaction application';
     END IF;
 END;
 
@@ -150,13 +168,14 @@ CREATE EVENT flush_cache
           AND status_ = 'completed';
     END;
 
-CREATE TRIGGER duplicate_apply/borrow
-    BEFORE INSERT
+CREATE TRIGGER duplicate_applyborrow
+    BEFORE
+        INSERT
     ON applications
     FOR EACH ROW
 BEGIN
-
-        IF  (SELECT COUNT(*) FROM applications WHERE status_ != 'completed' AND NEW.user_id = user_id AND NEW.ISBN = ISBN) > 0 THEN
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'You have already applied/borrowed this book';
+    IF (SELECT COUNT(*) FROM applications WHERE status_ != 'completed' AND NEW.user_id = user_id AND NEW.ISBN = ISBN) >
+       0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'You have already applied/borrowed this book';
     END IF;
 END;

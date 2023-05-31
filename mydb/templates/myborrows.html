@@ -1,0 +1,41 @@
+{% extends "global_layout.html" %}
+{% block content %}
+{% include "flash_messages.html" %}
+{% include "usernavbar.html" %}
+{% include "profilemodal.html" %}
+{% include "pwdmodal.html" %}
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="jumbotron p-3">
+            <h2>My Borrows</h2>
+            <div class="card" id="card-container">
+                <div class="card-body" id="card">
+                    <table class="table table-striped table-sm table-borderless">
+                        <thead>
+                            <tr>
+                                <th>ISBN</th>
+                                <th>Title</th>
+                                <th>Book borrowed at</th>
+                                <th>Book return due to</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for borrow in borrows %}
+                            <tr>
+                                <td> {{borrow.ISBN}} </td>
+                                <td>{{borrow.title}}</td>
+                                <td>{{borrow.start_date}} </td>
+                                <td>{{borrow.expiration_date}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -592,11 +592,12 @@ def bookdetails(ISBN):
             if "reserve" in request.form:
                 try:
                     id = mysession["user"]['user_id']
-                    mysession['user']['active_reservations'] += 1
                     cur = db.connection.cursor()
                     query = f"""INSERT INTO applications(user_id, ISBN, start_date) VALUES ('{id}', '{ISBN}',CURDATE())"""
                     cur.execute(query)
                     db.connection.commit()
+                    mysession['user']['active_reservations'] += 1
+                    
                     flash("Book reserved successfully!", "success")
                 except Exception as e:
                     flash(str(e), "success")
@@ -635,5 +636,151 @@ WHERE a.status_ = 'applied' AND u.school_name = '{school_name}' """
             reservations = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
             cur.close()
             return render_template('handlerreservations.html', title='Reservations', reservations=reservations)
+        user_id = mysession["user"]["user_id"]
+        cur = db.connection.cursor()
+        query = f""" SELECT b.ISBN,b.title,a.start_date,a.expiration_date
+FROM applications a
+INNER JOIN user u ON a.user_id = u.user_id
+INNER JOIN book b ON a.ISBN = b.ISBN
+WHERE a.status_ = 'applied' AND u.user_id = {user_id} """
+        cur.execute(query)
+        column_names = [i[0] for i in cur.description]
+        reservations = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+        cur.close()
+        return render_template('myreservations.html', title='Reservations', reservations=reservations , user =mysession["user"])
+    return redirect(url_for('index'))
+
+@app.route('/schoolpage/userhome/reservations/<int:user_id>/<int:ISBN>/accept')
+def reservation_accept(user_id,ISBN):
+    if 'user' in mysession and 'school' in mysession:
+        if mysession["user"]['role'] == "handler":
+            cur = db.connection.cursor()
+            query = f" UPDATE applications SET status_ = 'borrowed' WHERE user_id = '{user_id}' AND ISBN = '{ISBN}'"
+            try:
+                cur.execute(query)
+                db.connection.commit()
+                cur.close()
+                mysession["user"]["active_borrows"] += 1
+                mysession["user"]["active_reservations"] -= 1
+                flash("Book is borrowed", "success")
+            except Exception as e:
+                flash(str(e), "success")
+            return redirect('/schoolpage/userhome/reservations')
+    return redirect(url_for('index'))
+
+
+@app.route('/schoolpage/userhome/reservations/<int:user_id>/<int:ISBN>/reject')
+def reservation_reject(user_id,ISBN):
+    if 'user' in mysession and 'school' in mysession:
+        if mysession["user"]['role'] == "handler":
+            cur = db.connection.cursor()
+            query = f"DELETE FROM applications WHERE user_id = '{user_id}' AND ISBN = '{ISBN}'"
+            cur.execute(query)
+            db.connection.commit()
+            cur.close()
+            mysession["user"]["active_reservations"] -= 1
+            flash("Reservation discarded", "success")
+            return redirect('/schoolpage/userhome/reservations')
+    return redirect(url_for('index'))
+
+@app.route('/schoolpage/userhome/borrows')
+def borrows():
+    if 'user' in mysession and 'school' in mysession:
+        if mysession["user"]['role'] == "handler":
+            cur = db.connection.cursor()
+            school_name = mysession["user"]['school_name']
+            query = f""" SELECT u.user_id,u.first_name,u.last_name,u.role_name,b.ISBN,b.title,a.start_date,a.expiration_date
+FROM applications a
+INNER JOIN user u ON a.user_id = u.user_id 
+INNER JOIN book b ON a.ISBN = b.ISBN
+WHERE a.status_ = 'borrowed' AND u.school_name = '{school_name}' """
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            borrows = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            cur.close()
+            return render_template('handlerborrows.html', title='Borrows', borrows=borrows)
+        user_id = mysession["user"]["user_id"]
+        cur = db.connection.cursor()
+        query = f""" SELECT b.ISBN,b.title,a.start_date,a.expiration_date
+FROM applications a
+INNER JOIN user u ON a.user_id = u.user_id
+INNER JOIN book b ON a.ISBN = b.ISBN
+WHERE a.status_ = 'borrowed' AND u.user_id = {user_id} """
+        cur.execute(query)
+        column_names = [i[0] for i in cur.description]
+        borrows = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+        cur.close()
+        return render_template('myborrows.html', title='Borrows', borrows=borrows , user =mysession["user"])
+    return redirect(url_for('index'))
+
+@app.route('/schoolpage/userhome/history')
+def history():
+    if 'user' in mysession and 'school' in mysession:
+        if mysession["user"]['role'] == "handler":
+            cur = db.connection.cursor()
+            school_name = mysession["user"]['school_name']
+            query = f""" SELECT u.user_id,u.first_name,u.last_name,u.role_name,b.ISBN,b.title
+FROM applications a
+INNER JOIN user u ON a.user_id = u.user_id 
+INNER JOIN book b ON a.ISBN = b.ISBN
+WHERE a.status_ = 'completed' AND u.school_name = '{school_name}' """
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            history = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            cur.close()
+            return render_template('handlerhistory.html', title='History', history=history)
+        user_id = mysession["user"]["user_id"]
+        cur = db.connection.cursor()
+        query = f""" SELECT b.ISBN,b.title
+FROM applications a
+INNER JOIN user u ON a.user_id = u.user_id
+INNER JOIN book b ON a.ISBN = b.ISBN
+WHERE a.status_ = 'completed' AND u.user_id = {user_id} """
+        cur.execute(query)
+        column_names = [i[0] for i in cur.description]
+        history = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+        cur.close()
+        return render_template('myhistory.html', title='History', history=history , user =mysession["user"])
+    return redirect(url_for('index'))
+
+@app.route('/schoolpage/userhome/borrows/<int:user_id>/<int:ISBN>/completed')
+def borrows_completed(user_id,ISBN):
+    if 'user' in mysession and 'school' in mysession:
+        if mysession["user"]['role'] == "handler":
+            cur = db.connection.cursor()
+            query = f" UPDATE applications SET status_ = 'completed' WHERE user_id = '{user_id}' AND ISBN = '{ISBN}'"
+            try:
+                cur.execute(query)
+                db.connection.commit()
+                cur.close()
+                mysession["user"]["active_borrows"] -= 1
+                flash("Book is returned", "success")
+            except Exception as e:
+                flash(str(e), "success")
+            return redirect('/schoolpage/userhome/reservations')
+    return redirect(url_for('index'))
+
+@app.route('/schoolpage/userhome/reservations/create', methods=['POST'])
+def new_reservation():
+    if 'user' in mysession and 'school' in mysession:
+        if mysession['user']['role'] == "handler":
+            if request.method == 'POST':
+                username = request.form['username']
+                ISBN = request.form['isbn']
+                try:
+                    cur = db.connection.cursor()
+                    query = f"""Select user_id FROM user WHERE username = '{username}' """
+                    cur.execute(query)
+                    record = cur.fetchone()
+                    if record:
+                        id = record[0]
+                        query = f"""INSERT INTO applications(user_id, ISBN, start_date) VALUES ('{id}', '{ISBN}',CURDATE())"""
+                        cur.execute(query)
+                        db.connection.commit()
+                        flash("Book reserved successfully!", "success")
+                    flash("Username does not exist in database", "success")
+                except Exception as e:
+                    flash(str(e), "success")
+                return redirect(url_for('reservations'))
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))

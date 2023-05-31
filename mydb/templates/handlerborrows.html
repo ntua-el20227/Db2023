@@ -1,0 +1,50 @@
+{% extends "global_layout.html" %}
+{% block content %}
+{% include "flash_messages.html" %}
+{% include "handlernavbar.html" %}
+{% include "pwdmodal.html" %}
+
+    <div class="row">
+    <div class="col-md-12">
+        <div class="jumbotron p-3">
+            <h2>Borrows</h2>
+            <div class="card" id="card-container">
+                <div class="card-body" id="card">
+                    <table class="table table-striped table-sm table-borderless">
+                        <thead>
+                            <tr>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th>Teacher/Student</th>
+                                <th>ISBN</th>
+                                <th>Title</th>
+                                <th>Book borrowed at</th>
+                                <th>Book return due to</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for borrow in borrows %}
+                            <tr>
+                                <td> {{borrow.first_name}} </td>
+                                <td> {{borrow.last_name}} </td>
+                                <td> {{borrow.role_name}} </td>
+                                <td> {{borrow.ISBN}} </td>
+                                <td>{{borrow.title}}</td>
+                                <td>{{borrow.start_date}} </td>
+                                <td>{{borrow.expiration_date}}</td>
+                                <td>
+                                    <a href="/schoolpage/userhome/borrows/{{borrow.user_id}}/{{borrow.ISBN}}/completed"> <button class="btn btn-success btn-xs"> <i class="bi bi-check2"></i>  </button></a>                                  
+                                </td>
+                            </tr>
+                            
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

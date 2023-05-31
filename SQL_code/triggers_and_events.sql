@@ -63,7 +63,7 @@ BEGIN
     IF NEW.status_ = 'applied' THEN
         UPDATE user
         SET active_reservations = active_reservations + 1
-        WHERE user.user_id = NEW.user_id;
+        WHERE user_id = NEW.user_id;
     END IF;
 END;
 
@@ -77,18 +77,17 @@ CREATE TRIGGER trigger_update_active_borrows
     ON applications
     FOR EACH ROW
 BEGIN
-    IF NEW.status_ = 'borrowed' AND OLD.status_ = 'applied' THEN
+    IF NEW.status_ = 'borrowed' AND OLD.status_ = 'applied' AND NEW.application_id != OLD.application_id THEN
         UPDATE user
-        SET active_borrows = active_borrows + 1
-            AND active_reservations = active_reservations - 1
+        SET active_borrows = active_borrows + 1, active_reservations = active_reservations - 1
         WHERE user.user_id = NEW.user_id;
 
-    ELSEIF NEW.status_ = 'completed' AND OLD.status_ = 'borrowed' THEN
+    ELSEIF NEW.status_ = 'completed' AND OLD.status_ = 'borrowed' AND NEW.application_id != OLD.application_id THEN
         UPDATE user
         SET active_borrows = active_borrows - 1
         WHERE user.user_id = NEW.user_id;
 
-    ELSEIF NEW.status_= 'completed' AND OLD.status_ = 'expired_borrowing' THEN
+    ELSEIF NEW.status_= 'completed' AND OLD.status_ = 'expired_borrowing' AND NEW.application_id != OLD.application_id THEN
         UPDATE user
         SET active_borrows = active_borrows-1
         WHERE user.user_id = NEW.user_id;
@@ -145,3 +144,14 @@ CREATE EVENT flush_cache
         WHERE expiration_date <= MONTH(NOW()) - INTERVAL 3 YEAR
           AND status_ = 'completed';
     END;
+
+CREATE TRIGGER sdoghodsigosd
+    BEFORE INSERT
+    ON applications
+    FOR EACH ROW
+BEGIN
+
+        IF  (SELECT COUNT(*) FROM applications WHERE status_ != 'completed' AND NEW.user_id = user_id AND NEW.ISBN = ISBN) > 0 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'You have already applied/borrowed this book';
+    END IF;
+END;

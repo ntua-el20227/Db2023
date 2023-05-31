@@ -18,8 +18,8 @@ CREATE TRIGGER trigger_update_dates_on_borrowing
     FOR EACH ROW
 BEGIN
     IF NEW.status_ = 'borrowed' THEN
-        SET NEW.start_date = CURRENT_DATE();
-        SET NEW.expiration_date = DATE_ADD(CURRENT_DATE(), INTERVAL 1 WEEK);
+        SET NEW.start_date = NOW();
+        SET NEW.expiration_date = DATE_ADD(NOW(), INTERVAL 1 WEEK);
     END IF;
 END;
 
@@ -72,25 +72,30 @@ END;
    borrowed->expired_borrowing
    expired_borrowing->completed
 */
-CREATE TRIGGER trigger_update_active_borrows
+
+CREATE TRIGGER trigger_update_active_borrows    
     BEFORE UPDATE
     ON applications
-    FOR EACH ROW
+    FOR EACH ROW  
 BEGIN
-    IF NEW.status_ = 'borrowed' AND OLD.status_ = 'applied' AND NEW.application_id != OLD.application_id THEN
+    IF NEW.status_ = 'borrowed' AND OLD.status_ = 'applied' (WHERE application_id ={application_id}) THEN
         UPDATE user
         SET active_borrows = active_borrows + 1, active_reservations = active_reservations - 1
         WHERE user.user_id = NEW.user_id;
 
-    ELSEIF NEW.status_ = 'completed' AND OLD.status_ = 'borrowed' AND NEW.application_id != OLD.application_id THEN
+    ELSEIF NEW.status_ = 'completed' AND OLD.status_ = 'borrowed' THEN
         UPDATE user
         SET active_borrows = active_borrows - 1
         WHERE user.user_id = NEW.user_id;
 
-    ELSEIF NEW.status_= 'completed' AND OLD.status_ = 'expired_borrowing' AND NEW.application_id != OLD.application_id THEN
+    ELSEIF NEW.status_= 'completed' AND OLD.status_ = 'expired_borrowing'  THEN
         UPDATE user
         SET active_borrows = active_borrows-1
         WHERE user.user_id = NEW.user_id;
+    
+    ELSEIF NEW.status_ = 'borrowed' AND OLD.status_ = 'completed' THEN
+         SET NEW.status_ = OLD.status_;
+
     ELSE
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid order in application';
     END IF;
@@ -145,7 +150,7 @@ CREATE EVENT flush_cache
           AND status_ = 'completed';
     END;
 
-CREATE TRIGGER sdoghodsigosd
+CREATE TRIGGER duplicate_apply/borrow
     BEFORE INSERT
     ON applications
     FOR EACH ROW

@@ -655,7 +655,8 @@ def reservation_accept(user_id,ISBN):
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
-            query = f" UPDATE applications SET status_ = 'borrowed' WHERE user_id = '{user_id}' AND ISBN = '{ISBN}'"
+            query = f""" UPDATE applications SET status_ = 'borrowed' WHERE application_id = (SELECT application_id FROM applications 
+            WHERE user_id = {user_id} AND ISBN = {ISBN} AND status_ = 'applied') """
             try:
                 cur.execute(query)
                 db.connection.commit()
@@ -748,7 +749,8 @@ def borrows_completed(user_id,ISBN):
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
-            query = f" UPDATE applications SET status_ = 'completed' WHERE user_id = '{user_id}' AND ISBN = '{ISBN}'"
+            query = f""" UPDATE applications SET status_ = 'completed' WHERE application_id = (SELECT application_id FROM applications 
+            WHERE user_id = {user_id} AND ISBN = {ISBN} AND (status_ = 'borrowed' OR status_ = 'expired_borrowing')) """
             try:
                 cur.execute(query)
                 db.connection.commit()

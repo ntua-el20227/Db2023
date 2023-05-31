@@ -252,7 +252,6 @@ def schoolpage():
     return redirect(url_for('index'))
 
 
-
 @app.route('/schoolpage/login', methods=['POST'])  # checked
 def login():
     if "school" in mysession:
@@ -271,15 +270,16 @@ def login():
         if record:
             is_active = record[6]
             if is_active == "active":
-                mysession['user'] = {'user_id': record[0], 'username': record[1], 'pwd':record[2],
-                'first_name': record[3], 'last_name': record[4], 'birthday': record[5], 'active_borrows':record[7], 'role': record[8], 'school_name': record[9], 'active_reservations': record[10]}                        
+                mysession['user'] = {'user_id': record[0], 'username': record[1], 'pwd': record[2],
+                                     'first_name': record[3], 'last_name': record[4], 'birthday': record[5],
+                                     'active_borrows': record[7], 'role': record[8], 'school_name': record[9],
+                                     'active_reservations': record[10]}
                 return redirect(url_for('userhome'))
             flash("User is not activated yet", "success")
             return redirect(url_for('schoolpage'))
         flash("Wrong credentials", "success")
         return redirect(url_for('schoolpage'))
     return redirect(url_for('index'))
-
 
 
 @app.route('/schoolpage/register', methods=['POST'])  # birthday missing, rest is checked
@@ -314,7 +314,6 @@ def register():
             flash(str(e), "success")
         return redirect(url_for('schoolpage'))
     return redirect(url_for('index'))
-
 
 
 @app.route('/schoolpage/userhome')  # checked
@@ -597,7 +596,7 @@ def bookdetails(ISBN):
                     cur.execute(query)
                     db.connection.commit()
                     mysession['user']['active_reservations'] += 1
-                    
+
                     flash("Book reserved successfully!", "success")
                 except Exception as e:
                     flash(str(e), "success")
@@ -626,11 +625,15 @@ def reservations():
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
             school_name = mysession["user"]['school_name']
-            query = f""" SELECT u.user_id,u.first_name,u.last_name,u.role_name,b.ISBN,b.title,a.start_date,a.expiration_date
+            query = f""" SELECT u.user_id,u.first_name,u.last_name,u.role_name,
+            b.ISBN,b.title,a.start_date
+            ,a.expiration_date,a.application_id
 FROM applications a
 INNER JOIN user u ON a.user_id = u.user_id 
 INNER JOIN book b ON a.ISBN = b.ISBN
-WHERE a.status_ = 'applied' AND u.school_name = '{school_name}' """
+WHERE a.status_ = 'applied' AND u.school_name = '{school_name}' 
+ORDER BY a.start_date;
+"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             reservations = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -647,11 +650,13 @@ WHERE a.status_ = 'applied' AND u.user_id = {user_id} """
         column_names = [i[0] for i in cur.description]
         reservations = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
         cur.close()
-        return render_template('myreservations.html', title='Reservations', reservations=reservations , user =mysession["user"])
+        return render_template('myreservations.html', title='Reservations', reservations=reservations,
+                               user=mysession["user"])
     return redirect(url_for('index'))
 
+
 @app.route('/schoolpage/userhome/reservations/<int:user_id>/<int:ISBN>/accept')
-def reservation_accept(user_id,ISBN):
+def reservation_accept(user_id, ISBN):
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
@@ -665,13 +670,19 @@ def reservation_accept(user_id,ISBN):
                 mysession["user"]["active_reservations"] -= 1
                 flash("Book is borrowed", "success")
             except Exception as e:
-                flash(str(e), "success")
+                flash("This book has no available copies", "success")
+                query = """UPDATE applications 
+                            SET applications.expiration_date = DATE_ADD(applications.start_date,INTERVAL 2 MONTH); 
+                        """
+                cur.execute(query)
+                db.connection.commit()
+                cur.close()
             return redirect('/schoolpage/userhome/reservations')
     return redirect(url_for('index'))
 
 
 @app.route('/schoolpage/userhome/reservations/<int:user_id>/<int:ISBN>/reject')
-def reservation_reject(user_id,ISBN):
+def reservation_reject(user_id, ISBN):
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
@@ -684,17 +695,20 @@ def reservation_reject(user_id,ISBN):
             return redirect('/schoolpage/userhome/reservations')
     return redirect(url_for('index'))
 
+
 @app.route('/schoolpage/userhome/borrows')
 def borrows():
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
             school_name = mysession["user"]['school_name']
-            query = f""" SELECT u.user_id,u.first_name,u.last_name,u.role_name,b.ISBN,b.title,a.start_date,a.expiration_date
+            query = f""" SELECT u.user_id,u.first_name,u.last_name,u.role_name,b.ISBN,b.title,a.start_date,a.expiration_date,a.application_id
 FROM applications a
 INNER JOIN user u ON a.user_id = u.user_id 
 INNER JOIN book b ON a.ISBN = b.ISBN
-WHERE a.status_ = 'borrowed' AND u.school_name = '{school_name}' """
+WHERE a.status_ = 'borrowed' AND u.school_name = '{school_name}'
+ ORDER BY a.start_date;
+ """
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             borrows = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -711,8 +725,9 @@ WHERE a.status_ = 'borrowed' AND u.user_id = {user_id} """
         column_names = [i[0] for i in cur.description]
         borrows = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
         cur.close()
-        return render_template('myborrows.html', title='Borrows', borrows=borrows , user =mysession["user"])
+        return render_template('myborrows.html', title='Borrows', borrows=borrows, user=mysession["user"])
     return redirect(url_for('index'))
+
 
 @app.route('/schoolpage/userhome/history')
 def history():
@@ -741,11 +756,12 @@ WHERE a.status_ = 'completed' AND u.user_id = {user_id} """
         column_names = [i[0] for i in cur.description]
         history = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
         cur.close()
-        return render_template('myhistory.html', title='History', history=history , user =mysession["user"])
+        return render_template('myhistory.html', title='History', history=history, user=mysession["user"])
     return redirect(url_for('index'))
 
+
 @app.route('/schoolpage/userhome/borrows/<int:user_id>/<int:ISBN>/completed')
-def borrows_completed(user_id,ISBN):
+def borrows_completed(user_id, ISBN):
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
@@ -761,6 +777,7 @@ def borrows_completed(user_id,ISBN):
                 flash(str(e), "success")
             return redirect('/schoolpage/userhome/reservations')
     return redirect(url_for('index'))
+
 
 @app.route('/schoolpage/userhome/reservations/create', methods=['POST'])
 def new_reservation():

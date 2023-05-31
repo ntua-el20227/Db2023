@@ -1,3 +1,4 @@
+INSERT INTO admin (username, pwd) VALUES ('admin','pwd');
 INSERT INTO user (username, pwd, first_name, last_name, birth_date, role_name, school_name) VALUES ('nikitas.kotsikoris219', 'TwU3TCv6&@', 'Νικήτας', 'Κωτσικόρης', '2007-01-07', 'student', '16ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ');
 INSERT INTO user (username, pwd, first_name, last_name, birth_date, role_name, school_name) VALUES ('nikitas.spanidoy375', 'U!t_95WwSf', 'Νικήτας', 'Σπανίδου', '2014-09-29', 'student', '16ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ');
 INSERT INTO user (username, pwd, first_name, last_name, birth_date, role_name, school_name) VALUES ('meletia.darsakli260', '(i00stSq*F', 'Μελέτια', 'Δαρσακλή', '2013-02-26', 'student', '16ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ');

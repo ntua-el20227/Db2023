@@ -125,6 +125,7 @@ CREATE TABLE review
     evaluation      TEXT,
     like_scale      ENUM ('1', '2', '3', '4', '5') NOT NULL,
     approval_status ENUM ('approved','pending') DEFAULT 'pending',
+    review_date     DATE NOT NULL,
     CONSTRAINT FK_book_review FOREIGN KEY (ISBN)
         REFERENCES book (ISBN)
         ON DELETE CASCADE ON UPDATE CASCADE,

@@ -179,3 +179,14 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'You have already applied/borrowed this book';
     END IF;
 END;
+
+CREATE TRIGGER expired_borrow_penalty
+    BEFORE INSERT
+    ON applications
+    FOR EACH ROW
+BEGIN
+    IF (SELECT COUNT(*) FROM applications WHERE status_ != 'expired_borrowing'
+    AND NEW.user_id = user_id AND NEW.ISBN = ISBN) != 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'You cannot apply for borrow when u have and expired borrowing' ;
+    END IF;
+END;

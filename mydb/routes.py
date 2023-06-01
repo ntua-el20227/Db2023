@@ -5,7 +5,7 @@ from mydb import app, db
 mysession = {}
 
 
-@app.route('/', methods=['GET', 'POST'])  # checked
+@app.route('/', methods=['GET', 'POST'])  #checked
 def index():
     mysession.clear()
     cur = db.connection.cursor()
@@ -252,6 +252,7 @@ def schoolpage():
     return redirect(url_for('index'))
 
 
+
 @app.route('/schoolpage/login', methods=['POST'])  # checked
 def login():
     if "school" in mysession:
@@ -373,11 +374,7 @@ def users():
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
-            id = mysession["school"]
-            query = f"SELECT * FROM school WHERE school_id='{id}'"
-            cur.execute(query)
-            record = cur.fetchone()
-            school_name = record[1]
+            school_name = mysession["user"]["school_name"]
             query = f" SELECT * FROM user where role_name != 'handler' and school_name= '{school_name}'"
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
@@ -655,19 +652,16 @@ WHERE a.status_ = 'applied' AND u.user_id = {user_id} """
     return redirect(url_for('index'))
 
 
-@app.route('/schoolpage/userhome/reservations/<int:user_id>/<int:ISBN>/accept')
-def reservation_accept(user_id, ISBN):
+@app.route('/schoolpage/userhome/reservations/<int:application_id>/accept')
+def reservation_accept(application_id):
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
-            query = f""" UPDATE applications SET status_ = 'borrowed' WHERE application_id = (SELECT application_id FROM applications 
-            WHERE user_id = {user_id} AND ISBN = {ISBN} AND status_ = 'applied') """
+            query = f""" UPDATE applications SET status_ = 'borrowed' WHERE application_id = {application_id}"""
             try:
                 cur.execute(query)
                 db.connection.commit()
                 cur.close()
-                mysession["user"]["active_borrows"] += 1
-                mysession["user"]["active_reservations"] -= 1
                 flash("Book is borrowed", "success")
             except Exception as e:
                 flash("This book has no available copies", "success")
@@ -681,16 +675,15 @@ def reservation_accept(user_id, ISBN):
     return redirect(url_for('index'))
 
 
-@app.route('/schoolpage/userhome/reservations/<int:user_id>/<int:ISBN>/reject')
-def reservation_reject(user_id, ISBN):
+@app.route('/schoolpage/userhome/reservations/<int:application_id>/reject')
+def reservation_reject(application_id):
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
-            query = f"DELETE FROM applications WHERE user_id = '{user_id}' AND ISBN = '{ISBN}'"
+            query = f"DELETE FROM applications WHERE application_id = {application_id} "
             cur.execute(query)
             db.connection.commit()
             cur.close()
-            mysession["user"]["active_reservations"] -= 1
             flash("Reservation discarded", "success")
             return redirect('/schoolpage/userhome/reservations')
     return redirect(url_for('index'))
@@ -735,7 +728,7 @@ def history():
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
             school_name = mysession["user"]['school_name']
-            query = f""" SELECT u.user_id,u.first_name,u.last_name,u.role_name,b.ISBN,b.title
+            query = f""" SELECT a.application_id, u.user_id,u.first_name,u.last_name,u.role_name,b.ISBN,b.title
 FROM applications a
 INNER JOIN user u ON a.user_id = u.user_id 
 INNER JOIN book b ON a.ISBN = b.ISBN
@@ -747,7 +740,7 @@ WHERE a.status_ = 'completed' AND u.school_name = '{school_name}' """
             return render_template('handlerhistory.html', title='History', history=history)
         user_id = mysession["user"]["user_id"]
         cur = db.connection.cursor()
-        query = f""" SELECT b.ISBN,b.title
+        query = f""" SELECT a.application_id, b.ISBN,b.title
 FROM applications a
 INNER JOIN user u ON a.user_id = u.user_id
 INNER JOIN book b ON a.ISBN = b.ISBN
@@ -755,28 +748,31 @@ WHERE a.status_ = 'completed' AND u.user_id = {user_id} """
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         history = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+        query = f"""SELECT * from review WHERE user_id={user_id}"""
+        cur.execute(query)
+        column_names = [i[0] for i in cur.description]
+        reviews = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
         cur.close()
-        return render_template('myhistory.html', title='History', history=history, user=mysession["user"])
+        return render_template('myhistory.html', title='History', history=history, reviews=reviews, revsISBN=[review["ISBN"] for review in reviews], user=mysession["user"])
     return redirect(url_for('index'))
 
 
-@app.route('/schoolpage/userhome/borrows/<int:user_id>/<int:ISBN>/completed')
-def borrows_completed(user_id, ISBN):
+@app.route('/schoolpage/userhome/borrows/<int:application_id>/completed')
+def borrows_completed(application_id):
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
             cur = db.connection.cursor()
-            query = f""" UPDATE applications SET status_ = 'completed' WHERE application_id = (SELECT application_id FROM applications 
-            WHERE user_id = {user_id} AND ISBN = {ISBN} AND (status_ = 'borrowed' OR status_ = 'expired_borrowing')) """
+            query = f""" UPDATE applications SET status_ = 'completed' WHERE application_id = {application_id} AND (status_ = 'borrowed' OR status_ = 'expired_borrowing') """
             try:
                 cur.execute(query)
                 db.connection.commit()
                 cur.close()
-                mysession["user"]["active_borrows"] -= 1
                 flash("Book is returned", "success")
             except Exception as e:
                 flash(str(e), "success")
             return redirect('/schoolpage/userhome/reservations')
     return redirect(url_for('index'))
+
 
 
 @app.route('/schoolpage/userhome/reservations/create', methods=['POST'])
@@ -801,5 +797,67 @@ def new_reservation():
                 except Exception as e:
                     flash(str(e), "success")
                 return redirect(url_for('reservations'))
+        return redirect(url_for('userhome'))
+    return redirect(url_for('index'))
+
+
+
+@app.route('/schoolpage/userhome/<int:ISBN>/new_review', methods=["POST"])
+def new_review(ISBN):
+    if 'user' in mysession and 'school' in mysession:
+        opinion = request.form["opinion"]
+        rating = request.form["star_b"]
+        id = mysession["user"]["user_id"]
+        cur = db.connection.cursor()
+        query = f"""INSERT INTO review (ISBN, user_id, evaluation, like_scale, review_date) VALUES ({ISBN}, {id}, "{opinion}", {rating}, CURDATE())"""
+        cur.execute(query)        
+        db.connection.commit()
+        flash("Book Review sent", "success")
+        return redirect('/schoolpage/userhome/history')
+    return redirect(url_for('index'))
+
+
+@app.route('/schoolpage/userhome/<int:ISBN>/update_review', methods=["POST"])
+def review(ISBN):
+    if 'user' in mysession and 'school' in mysession:
+       opinion = request.form["opinion"]
+       rating = request.form["star_a"]
+       id = mysession["user"]["user_id"]
+       cur = db.connection.cursor()
+       query = f"""UPDATE review SET evaluation="{opinion}", like_scale={rating}, approval_status='pending', review_date=CURDATE() WHERE ISBN={ISBN} AND user_id={id}"""
+       cur.execute(query)        
+       db.connection.commit()
+       flash("Book Review sent", "success")
+       return redirect('/schoolpage/userhome/history')
+    return redirect(url_for('index'))
+
+
+
+@app.route('/schoolpage/userhome/reviews')
+def reviews():
+    if 'user' in mysession and 'school' in mysession:
+        if mysession["user"]['role'] == "handler":
+            cur = db.connection.cursor()
+            query = f"βρείτε τα pending review του σχολείου ταξινομημένα με το date τους με φθίνουσα σειρά (πρώτα τα πρόσφατα) να πάρει πάνω firts_name, last_name του user, και όλα τα χαρακτηριστικά του review μετά ISBN κλπ"
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            reviews = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            cur.close()
+            return render_template('handlerreviews.html', title='Reviews', reviews=reviews)
+        return redirect(url_for('userhome'))
+    return redirect(url_for('index'))
+
+
+
+@app.route('/schoolpage/userhome/reviews/<int:ISBN>/<int:user_id>', methods=["POST"])
+def approve_review(ISBN, user_id):
+    if 'user' in mysession and 'school' in mysession:
+        if mysession["user"]['role'] == "handler":
+            cur = db.connection.cursor()
+            query = f"UPDATE review SET approval_status='approved' WHERE ISBN={ISBN} and user_id={user_id}"
+            cur.execute(query)
+            db.connection.commit()
+            flash("Review Approved", "success")
+            return redirect(url_for('reviews'))
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))

@@ -24,7 +24,6 @@
                                 <th>ISBN</th>
                                 <th>Title</th>
                                 <th>Reservation made at</th>
-                                <th>Reservation expires at</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -36,11 +35,10 @@
                                 <td> {{reservation.ISBN}} </td>
                                 <td>{{reservation.title}}</td>
                                 <td>{{reservation.start_date}} </td>
-                                <td>{{reservation.expiration_date}}</td>
                                 <td>
-                                    <a href="/schoolpage/userhome/reservations/{{reservation.user_id}}/{{reservation.ISBN}}/accept"> <button class="btn btn-success btn-xs"> <i class="bi bi-check2"></i>  </button></a>
+                                    <a href="/schoolpage/userhome/reservations/{{reservation.application_id}}/accept"> <button class="btn btn-success btn-xs"> <i class="bi bi-check2"></i>  </button></a>
                                     
-                                    <a href="/schoolpage/userhome/reservations/{{reservation.user_id}}/{{reservation.ISBN}}/reject"> <button class="btn btn-danger btn-xs"
+                                    <a href="/schoolpage/userhome/reservations/{{reservation.application_id}}/reject"> <button class="btn btn-danger btn-xs"
                                     onclick="return confirm('Are you sure you want to Reject?')" > <i class="bi bi-x-lg"></i> </button></a>
                                 </td>
                             </tr>

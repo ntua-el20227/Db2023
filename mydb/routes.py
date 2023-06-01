@@ -837,8 +837,14 @@ def review(ISBN):
 def reviews():
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
+            school_name =  mysession["user"]['school_name'] 
             cur = db.connection.cursor()
-            query = f"βρείτε τα pending review του σχολείου ταξινομημένα με το date τους με φθίνουσα σειρά (πρώτα τα πρόσφατα) να πάρει πάνω firts_name, last_name του user, και όλα τα χαρακτηριστικά του review μετά ISBN κλπ"
+            query = f"""SELECT u.user_id,u.first_name, u.last_name,b.title, r.ISBN, r.evaluation, r.like_scale, r.review_date
+FROM user u
+INNER JOIN review r ON u.user_id = r.user_id
+INNER JOIN book b ON r.ISBN = b.ISBN
+WHERE r.approval_status = 'pending' AND u.school_name = '{school_name}'
+ORDER BY r.review_date DESC """
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             reviews = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -853,6 +859,7 @@ def reviews():
 def approve_review(ISBN, user_id):
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
+
             cur = db.connection.cursor()
             query = f"UPDATE review SET approval_status='approved' WHERE ISBN={ISBN} and user_id={user_id}"
             cur.execute(query)

@@ -770,7 +770,7 @@ def borrows_completed(application_id):
                 flash("Book is returned", "success")
             except Exception as e:
                 flash(str(e), "success")
-            return redirect('/schoolpage/userhome/reservations')
+            return redirect('/schoolpage/userhome/borrows')
     return redirect(url_for('index'))
 
 
@@ -793,7 +793,8 @@ def new_reservation():
                         cur.execute(query)
                         db.connection.commit()
                         flash("Book reserved successfully!", "success")
-                    flash("Username does not exist in database", "success")
+                    else:
+                        flash("Username does not exist in database", "success")
                 except Exception as e:
                     flash(str(e), "success")
                 return redirect(url_for('reservations'))

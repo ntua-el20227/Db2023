@@ -9,8 +9,6 @@
     {% endif %}
 {% include "pwdmodal.html" %}
 
-
-
 <h2>{{book.title}}</h2>
 
 <div class="row">
@@ -19,7 +17,21 @@
         <div class="card">
             <div class="row card-body">
                 <div class="col-4">
-                    <img  src="{{book.image}}" style="width: 250px; height: auto;">
+                    <figure>
+                        <img  src="{{book.image}}" style="width: 250px; height: auto;">
+                        <br>
+                        <br>
+                        <figcaption>
+                            {% if average %}
+                            <h5> Book Average Rating: {{average}}  ⭐ </h5>
+                            <h6> See {{size}} Review(s) Below </h6>
+                            <a href="/{{book.ISBN}}/reviews"> <button class="btn btn-success btn-xs">
+                                <i class="bi bi-file-earmark-text"></i> </button></a>
+                            {% else %}
+                            <h5> No reviews yet in School Libraries 📚 </h5>
+                            {% endif %}
+                        </figcaption>
+                    </figure>
                 </div>
                     <div class="col-8">
                     {% if user['role'] == "handler" %}

@@ -126,30 +126,40 @@ def new_school():
     return redirect(url_for('index'))
 
 
-@app.route("/adminhome/schools/<int:school_id>/edit", methods=["POST"])  # checked
+@app.route("/adminhome/schools/<int:school_id>/edit", methods=["GET" , "POST"])  # checked
 def school_edit(school_id):
     if 'status' in mysession:
         if mysession['status'] == "admin":
-            cur = db.connection.cursor()
-            name = request.form['name']
-            email = request.form['email']
-            principal_first_name = request.form['principal_first_name']
-            principal_last_name = request.form['principal_last_name']
-            city = request.form['city']
-            address = request.form['address']
-            phone_number = request.form['phone_number']
-            query = f"""
-            UPDATE school SET school_name = '{name}', school_email = '{email}', principal_first_name = '{principal_first_name}', principal_last_name = '{principal_last_name}', city = '{city}'
-            , address = '{address}', phone_number = '{phone_number}' WHERE school_id='{school_id}'"""
-            try:
+            if request.method=="GET":
                 cur = db.connection.cursor()
+                query = f" SELECT * FROM school where school_id={school_id}"
                 cur.execute(query)
-                db.connection.commit()
+                column_names = [i[0] for i in cur.description]
+                record = cur.fetchone()
+                school = dict(zip(column_names, record))
                 cur.close()
-                flash("School edited successfully", "success")
-            except Exception as e:
-                flash(str(e), "success")
-            return redirect('/adminhome/schools')
+                return render_template('admineditschool.html', title='School', school=school)
+            if request.method=="POST":
+                cur = db.connection.cursor()
+                name = request.form['name']
+                email = request.form['email']
+                principal_first_name = request.form['principal_first_name']
+                principal_last_name = request.form['principal_last_name']
+                city = request.form['city']
+                address = request.form['address']
+                phone_number = request.form['phone_number']
+                query = f"""
+                UPDATE school SET school_name = '{name}', school_email = '{email}', principal_first_name = '{principal_first_name}', principal_last_name = '{principal_last_name}', city = '{city}'
+                , address = '{address}', phone_number = '{phone_number}' WHERE school_id='{school_id}'"""
+                try:
+                    cur = db.connection.cursor()
+                    cur.execute(query)
+                    db.connection.commit()
+                    cur.close()
+                    flash("School edited successfully", "success")
+                except Exception as e:
+                    flash(str(e), "success")
+                return redirect('/adminhome/schools')
     return redirect(url_for('index'))
 
 
@@ -415,6 +425,7 @@ def user_reject(user_id):
     return redirect(url_for('index'))
 
 
+
 @app.route('/schoolpage/userhome/users/<int:user_id>/deactivate')
 def user_deactivate(user_id):
     if 'user' in mysession and 'school' in mysession:
@@ -428,6 +439,7 @@ def user_deactivate(user_id):
             return redirect('/schoolpage/userhome/users')
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))
+
 
 
 @app.route('/schoolpage/userhome/books', methods=['GET', 'POST'])  # checked
@@ -457,6 +469,7 @@ def books():
         cur.close()
         return render_template('books.html', user=mysession['user'], title='Books', books=books)
     return redirect(url_for('index'))
+
 
 
 @app.route('/schoolpage/userhome/books/<int:ISBN>/add', methods=['GET', 'POST'])  # checked
@@ -605,14 +618,29 @@ def bookdetails(ISBN):
                      GROUP_CONCAT(DISTINCT c.category ORDER BY c.category SEPARATOR ', ') AS book_categories
                      FROM (SELECT book.* FROM book WHERE book.ISBN = {ISBN}) b INNER JOIN author a on  a.ISBN = b.ISBN
                      INNER JOIN categories c on c.ISBN = b.ISBN
-                     INNER JOIN stores s on s.ISBN = b.ISBN 
+                     INNER JOIN stores s on s.ISBN = b.ISBN
                      WHERE s.school_id = {school_id}
                      GROUP BY b.ISBN, b.title"""
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         book = dict(zip(column_names, cur.fetchone()))
-        return render_template('bookdetails.html', user=mysession['user'], title='Details',
-                               book=book)
+        query = f"""SELECT approved_reviews.like_scale
+        FROM (SELECT * FROM review WHERE approval_status = 'approved' AND ISBN = {ISBN}) approved_reviews
+        INNER JOIN user u 
+        ON u.user_id = approved_reviews.user_id"""
+        cur.execute(query)
+        column_names = [i[0] for i in cur.description]
+        score = 0 
+        size = 0
+        for entry in cur.fetchall():
+            x = dict(zip(column_names, entry))
+            score += int(x["like_scale"])
+            size +=1 
+        if size:
+            average = str(round(score/size, 2))
+        else:
+            average = 0
+        return render_template('bookdetails.html', user=mysession['user'], title='Details',book=book, average=average, size=size)
     return redirect(url_for('index'))
 
 
@@ -699,7 +727,7 @@ def borrows():
 FROM applications a
 INNER JOIN user u ON a.user_id = u.user_id 
 INNER JOIN book b ON a.ISBN = b.ISBN
-WHERE a.status_ = 'borrowed' AND u.school_name = '{school_name}'
+WHERE (a.status_ = 'borrowed' OR a.status_ = 'expired_borrowing')  AND u.school_name = '{school_name}'
  ORDER BY a.start_date;
  """
             cur.execute(query)
@@ -713,7 +741,7 @@ WHERE a.status_ = 'borrowed' AND u.school_name = '{school_name}'
 FROM applications a
 INNER JOIN user u ON a.user_id = u.user_id
 INNER JOIN book b ON a.ISBN = b.ISBN
-WHERE a.status_ = 'borrowed' AND u.user_id = {user_id} """
+WHERE (a.status_ = 'borrowed' OR a.status_ = 'expired_borrowing') AND u.user_id = {user_id} """
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         borrows = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -803,44 +831,53 @@ def new_reservation():
 
 
 
-@app.route('/schoolpage/userhome/<int:ISBN>/new_review', methods=["POST"])
+@app.route('/schoolpage/userhome/<int:ISBN>/new_review', methods=["GET", "POST"])
 def new_review(ISBN):
     if 'user' in mysession and 'school' in mysession:
-        opinion = request.form["opinion"]
-        rating = request.form["star_b"]
+        if request.method == "POST":
+            opinion = request.form["opinion"]
+            rating = request.form["star_b"]
+            id = mysession["user"]["user_id"]
+            cur = db.connection.cursor()
+            query = f"""INSERT INTO review (ISBN, user_id, evaluation, like_scale, review_date) VALUES ({ISBN}, {id}, "{opinion}", {rating}, CURDATE())"""
+            cur.execute(query)        
+            db.connection.commit()
+            flash("Book Review sent", "success")
+            return redirect('/schoolpage/userhome/history')
+        return render_template('mynewreview.html', ISBN=ISBN, title='Review', user=mysession["user"])
+    return redirect(url_for('index'))
+
+
+@app.route('/schoolpage/userhome/<int:ISBN>/update_review', methods=["GET", "POST"])
+def update_review(ISBN):
+    if 'user' in mysession and 'school' in mysession:
         id = mysession["user"]["user_id"]
         cur = db.connection.cursor()
-        query = f"""INSERT INTO review (ISBN, user_id, evaluation, like_scale, review_date) VALUES ({ISBN}, {id}, "{opinion}", {rating}, CURDATE())"""
-        cur.execute(query)        
-        db.connection.commit()
-        flash("Book Review sent", "success")
-        return redirect('/schoolpage/userhome/history')
-    return redirect(url_for('index'))
-
-
-@app.route('/schoolpage/userhome/<int:ISBN>/update_review', methods=["POST"])
-def review(ISBN):
-    if 'user' in mysession and 'school' in mysession:
-       opinion = request.form["opinion"]
-       rating = request.form["star_a"]
-       id = mysession["user"]["user_id"]
-       cur = db.connection.cursor()
-       query = f"""UPDATE review SET evaluation="{opinion}", like_scale={rating}, approval_status='pending', review_date=CURDATE() WHERE ISBN={ISBN} AND user_id={id}"""
-       cur.execute(query)        
-       db.connection.commit()
-       flash("Book Review sent", "success")
-       return redirect('/schoolpage/userhome/history')
+        if request.method == "POST":
+            opinion = request.form["opinion"]
+            rating = request.form["star_a"]
+            query = f"""UPDATE review SET evaluation="{opinion}", like_scale={rating}, approval_status='pending', review_date=CURDATE() WHERE ISBN={ISBN} AND user_id={id}"""
+            cur.execute(query)        
+            db.connection.commit()
+            flash("Book Review sent", "success")
+            return redirect('/schoolpage/userhome/history')
+        query=f"""SELECT * FROM review where user_id={id} and ISBN={ISBN}"""
+        cur.execute(query)
+        record = cur.fetchone()
+        column_names = [i[0] for i in cur.description]
+        review = dict(zip(column_names, record))
+        return render_template('myupdatedreview.html', review=review, title='Review', user=mysession["user"])
     return redirect(url_for('index'))
 
 
 
-@app.route('/schoolpage/userhome/reviews')
+@app.route('/schoolpage/userhome/reviews', methods=["GET", "POST"])
 def reviews():
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
             school_name =  mysession["user"]['school_name'] 
             cur = db.connection.cursor()
-            query = f"""SELECT u.user_id,u.first_name, u.last_name,b.title, r.ISBN, r.evaluation, r.like_scale, r.review_date
+            query = f"""SELECT u.user_id, u.first_name, u.last_name,b.title, r.ISBN, r.evaluation, r.like_scale, r.review_date
 FROM user u
 INNER JOIN review r ON u.user_id = r.user_id
 INNER JOIN book b ON r.ISBN = b.ISBN
@@ -856,16 +893,46 @@ ORDER BY r.review_date DESC """
 
 
 
-@app.route('/schoolpage/userhome/reviews/<int:ISBN>/<int:user_id>', methods=["POST"])
-def approve_review(ISBN, user_id):
+@app.route('/schoolpage/userhome/reviews/<int:ISBN>/<int:id>')
+def review_details(ISBN, id):
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
-
             cur = db.connection.cursor()
-            query = f"UPDATE review SET approval_status='approved' WHERE ISBN={ISBN} and user_id={user_id}"
+            query = f"""SELECT u.user_id, u.first_name, u.last_name, b.title, r.ISBN, r.evaluation, r.like_scale, r.review_date
+FROM user u
+INNER JOIN review r ON u.user_id = r.user_id
+INNER JOIN book b ON r.ISBN = b.ISBN WHERE r.user_id={id} AND r.ISBN={ISBN}"""
             cur.execute(query)
-            db.connection.commit()
-            flash("Review Approved", "success")
-            return redirect(url_for('reviews'))
+            column_names = [i[0] for i in cur.description]
+            record = cur.fetchone()
+            review = dict(zip(column_names, record))
+            return render_template('handlerreviewaccept.html', title='Review', review=review)
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))
+
+
+
+@app.route('/schoolpage/userhome/reviews/<int:ISBN>/<int:id>/accept')
+def approve_review(ISBN, id):
+    cur = db.connection.cursor()
+    query = f"UPDATE review SET approval_status='approved' WHERE ISBN={ISBN} and user_id={id}"
+    cur.execute(query)
+    db.connection.commit()
+    flash("Review Approved", "success")
+    return redirect('/schoolpage/userhome/reviews')
+
+
+
+@app.route('/<int:ISBN>/reviews')
+def book_reviews(ISBN):
+    if 'user' in mysession and 'school' in mysession:
+        cur = db.connection.cursor()
+        query = f"""SELECT u.first_name, u.last_name, u.username, u.school_name, approved_reviews.like_scale, 
+        approved_reviews.evaluation, approved_reviews.review_date
+        FROM (SELECT * FROM review WHERE approval_status = 'approved' AND ISBN = {ISBN}) approved_reviews
+        INNER JOIN user u 
+        ON u.user_id = approved_reviews.user_id"""
+        cur.execute(query)
+        column_names = [i[0] for i in cur.description]
+        reviews = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+        return render_template('bookreviews.html', title='Book Reviews', reviews=reviews, user = mysession["user"])

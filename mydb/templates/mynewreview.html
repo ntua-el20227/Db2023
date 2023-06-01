@@ -1,0 +1,50 @@
+{% extends "global_layout.html" %}
+{% block content %}
+{% include "flash_messages.html" %}
+{% include "usernavbar.html" %}
+{% include "profilemodal.html" %}
+{% include "pwdmodal.html" %}
+
+<form action="/schoolpage/userhome/{{ISBN}}/new_review" method="POST">
+    <div class="form-group">
+        <label>ISBN:</label>
+        <input type="text" autocomplete="off" class="form-control" value="{{ISBN}}" readonly>
+    </div>
+    <br>
+    <div class="form-group">
+        <label>Opinion:</label>
+        <textarea name="opinion" class="form-control" autocomplete="off" cols="50" rows="8" required="1"></textarea>
+    </div>
+    <br>
+    <div class="form-group">
+        <label>Rate:</label>
+        <br>
+        <div class="star-rating float-start">
+            <input type="radio" name="star_b" value="5" class="star-1" id="star_b-1" required/>
+            <label class="star-1" for="star_b-1"></label>
+            <input type="radio" name="star_b" value="4" class="star-2" id="star_b-2" />
+            <label class="star-2" for="star_b-2"></label>
+            <input type="radio" name="star_b" value="3" class="star-3" id="star_b-3" />
+            <label class="star-3" for="star_b-3"></label>
+            <input type="radio" name="star_b" value="2" class="star-4" id="star_b-4" />
+            <label class="star-4" for="star_b-4"></label>
+            <input type="radio" name="star_b" value="1" class="star-5" id="star_b-5" />
+            <label class="star-5" for="star_b-5"></label>
+            <span></span>
+            <br>
+        </div>
+        <br>
+        <br>
+    </div>
+    <br>
+    <br>
+    <br>
+        <div class="form-group">
+       <button class="btn btn-primary" type="submit">Post Review</button>
+    </div>
+</form>   
+
+
+
+
+{% endblock %}

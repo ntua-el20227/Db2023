@@ -1,0 +1,43 @@
+{% extends "global_layout.html" %}
+{% block content %}
+{% include "flash_messages.html" %}
+{% include "handlernavbar.html" %}
+{% include "pwdmodal.html" %}
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="jumbotron p-3">
+            <h2>{{review.first_name}} {{review.first_name}}  Review</h2>
+        <div class="card">
+            <div class="row card-body">
+                    <div class="form-group">
+                        <label>Booktitle:</label>
+                        <input type="text" autocomplete="off" class="form-control" value="{{review.title}}" readonly>
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label>Opinion:</label>
+                        <textarea name="opinion" class="form-control" autocomplete="off" cols="50" rows="8" readonly>{{review.evaluation}}</textarea>
+                    </div>
+                    <br>
+                        <div class="form-group">
+                            <label>Rating was:</label>
+                            <input type="text" autocomplete="off" class="form-control" value="{{review.like_scale}}/5" readonly>
+                        </div>
+                        <br>
+                        <div class="form-group">
+                    
+                    <div class="form-group">
+                        <a href="/schoolpage/userhome/reviews/{{review.ISBN}}/{{review.user_id}}/accept"> <button class="btn btn-success btn-xs">
+                        Accept</button></a>
+                    </div>          
+            </div>        
+        </div>
+    </div>
+</div>
+</div>    
+
+
+
+
+{% endblock %}

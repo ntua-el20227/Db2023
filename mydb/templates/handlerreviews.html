@@ -27,45 +27,10 @@
                                 <td> {{review.ISBN}} </td>
                                 <td>{{review.review_date}} </td>
                                 <td>
-                                    <button class="btn btn-success btn-xs"
-                                            data-bs-toggle="modal" data-bs-target="#reviewmodal"> <i class="bi bi-file-earmark-text"></i>  </button>
+                                    <a href="/schoolpage/userhome/reviews/{{review.ISBN}}/{{review.user_id}}"> <button class="btn btn-success btn-xs">
+                                        <i class="bi bi-file-earmark-text"></i> </button></a>
                                 </td>
                             </tr>
-                            <div id="reviewmodal" class="modal fade" role="dialog">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h4 class="modal-title">Review</h4>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form action="/schoolpage/userhome/reviews/{{review.ISBN}}/{{review.user_id}}" method="POST">
-                                                <div class="form-group">
-                                                    <label>Booktitle:</label>
-                                                    <input type="text" autocomplete="off" class="form-control" value="{{review.title}}" readonly>
-                                                </div>
-                                                <br>
-                                                <div class="form-group">
-                                                    <label>Opinion:</label>
-                                                    <textarea name="opinion" class="form-control" autocomplete="off" cols="50" rows="8" required="1">{{review.evaluation}}</textarea>
-                                                </div>
-                                                <br>
-                                                    <div class="form-group">
-                                                        <label>Rating was:</label>
-                                                        <input type="text" autocomplete="off" class="form-control" value="{{review.like_scale}}/5" readonly>
-                                                    </div>
-                                                    <br>
-                                                    <div class="form-group">
-                                                   <button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i></button>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> 
-                                                </div>    
-                                            </form>   
-                                        </div>
-                                    </div>
-                                </div>
-                                </div>    
-
-
                         {% endfor %}
                         </tbody>
                     </table>
@@ -74,39 +39,5 @@
         </div>
     </div>
 </div>
-
-<div id="addmodal" class="modal fade" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Make a Reservation</h4>
-            </div>
-            <div class="modal-body">
-                <form action="/schoolpage/userhome/reservations/create" method="POST">
-                    <div class="form-group">
-                        <label>Username:</label>
-                        <input type="text" autocomplete="off" class="form-control" name="username" required="1">
-
-                    <div class="form-group">
-                        <label>ISBN:</label>
-                        <input type="number" autocomplete="off" class="form-control" name="isbn" required="1">
-                    </div>  
-                    <div class="form-group">
-                        <button class="btn btn-primary" type="submit">Reserve</button>
-                     </div>
-                     <div class="modal-footer">
-                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> 
-                     </div>
-                </form>   
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
-
-
-
 
 {% endblock %}

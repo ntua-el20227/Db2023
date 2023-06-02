@@ -1,3 +1,4 @@
+INSERT INTO categories (ISBN, category) VALUES ('9786180201833', 'Ανθρωπολογία - Εθνολογία');
 INSERT INTO author (author_name, ISBN) VALUES ('Αριστείδης Σ. Μπούρας', '9789604618040');
 INSERT INTO author (author_name, ISBN) VALUES ('Γιάννης Θ. Κάππας', '9789604618040');
 INSERT INTO author (author_name, ISBN) VALUES ('Κωνσταντίνος Σ. Χριστόπουλος', '9789606120121');
@@ -146,7 +147,6 @@ INSERT INTO categories (ISBN, category) VALUES ('9789604847549', 'Αστρονο
 INSERT INTO categories (ISBN, category) VALUES ('9786185111656', 'Βιολογία Φυσικών Επιστημών');
 INSERT INTO categories (ISBN, category) VALUES ('9786180328288', 'Γυναίκα');
 INSERT INTO categories (ISBN, category) VALUES ('9789609453110', 'Αστρονομία');
-INSERT INTO categories (ISBN, category) VALUES ('9786180201833', 'Ανθρωπολογία - Εθνολογία');
 INSERT INTO categories (ISBN, category) VALUES ('9789604367320', 'Αστρονομία');
 INSERT INTO categories (ISBN, category) VALUES ('9786180142945', 'Τεχνολογία');
 INSERT INTO categories (ISBN, category) VALUES ('9786182150986', 'Δίκαιο - Δικαιώματα');
@@ -198,7 +198,7 @@ INSERT INTO categories (ISBN, category) VALUES ('9781518783876', 'Ερωτική
 INSERT INTO categories (ISBN, category) VALUES ('9781539427766', 'Ερωτική - Αισθηματική Λογοτεχνία');
 INSERT INTO categories (ISBN, category) VALUES ('9780571334650', 'Λογοτεχνία του Φανταστικού');
 INSERT INTO categories (ISBN, category) VALUES ('9780008260187', 'Λογοτεχνία του Φανταστικού');
-INSERT INTO categories (ISBN, category) VALUES ('9781405298605', 'Μαλακό Εξώφυλλο');
+INSERT INTO categories (ISBN, category) VALUES ('9781405298605', '-');
 INSERT INTO categories (ISBN, category) VALUES ('9780008322052', 'Κλασική Λογοτεχνία');
 INSERT INTO categories (ISBN, category) VALUES ('9780349434278', 'Ερωτική - Αισθηματική Λογοτεχνία');
 INSERT INTO categories (ISBN, category) VALUES ('9780349434285', 'Ερωτική - Αισθηματική Λογοτεχνία');

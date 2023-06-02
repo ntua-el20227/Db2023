@@ -17,7 +17,7 @@ CREATE TRIGGER trigger_update_dates_on_borrowing
     ON applications
     FOR EACH ROW
 BEGIN
-    IF NEW.status_ = 'borrowed' THEN
+    IF NEW.status_ = 'borrowed' AND OLD.status_ = 'applied' THEN
         SET NEW.start_date = NOW();
         SET NEW.expiration_date = DATE_ADD(NOW(), INTERVAL 1 WEEK);
     END IF;
@@ -149,7 +149,7 @@ CREATE TRIGGER enforce_one_reservation_for_teacher
     FOR EACH ROW
 BEGIN
     IF (SELECT u.role_name FROM user u WHERE u.user_id = NEW.user_id) = 'teacher' AND
-       (SELECT u.active_reservations FROM user u WHERE u.user_id = NEW.user_id) = 1 THEN
+       (SELECT u.active_reservations FROM user u WHERE u.user_id = NEW.user_id) = 2 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Teacher can only borrow 1 book';
     END IF;
 END;

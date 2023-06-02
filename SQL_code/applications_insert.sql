@@ -23,4 +23,5 @@ INSERT INTO applications (ISBN, user_id, start_date) VALUES ('9789604618040', '4
 INSERT INTO applications (ISBN, user_id, start_date) VALUES ('9789606120121', '40', '2023-05-29');
 INSERT INTO applications (ISBN, user_id, start_date) VALUES ('9789606530777', '20', '2023-05-29');
 INSERT INTO applications (ISBN, user_id, start_date) VALUES ('9789606054471', '21', '2023-05-29');
-INSERT INTO applications (ISBN, user_id, start_date) VALUES ('9789606530302', '100', '2023-05-29');
+INSERT INTO applications (ISBN, user_id, start_date) VALUES ('9789606530302', '1050', '2023-05-29');
+

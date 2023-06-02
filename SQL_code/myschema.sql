@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS user
     first_name          VARCHAR(100)                                NOT NULL,
     last_name           VARCHAR(100)                                NOT NULL,
     birth_date          DATE                                        NOT NULL,
-    status_usr          ENUM ('active','pending') DEFAULT 'pending' NOT NULL,
+    status_usr          ENUM ('active','pending','removed') DEFAULT 'pending' NOT NULL,
     active_borrows      TINYINT(10)               DEFAULT 0         NOT NULL
         CHECK (active_borrows < 3 AND active_borrows >= 0),
     role_name           ENUM ('student', 'teacher', 'handler')      NOT NULL,
@@ -103,12 +103,12 @@ CREATE TABLE IF NOT EXISTS stores
 
 CREATE TABLE IF NOT EXISTS applications
 (
-    application_id  BIGINT AUTO_INCREMENT                                                           NOT NULL PRIMARY KEY,
-    user_id         BIGINT                                                                          NOT NULL,
-    ISBN            BIGINT                                                                          NOT NULL,
-    start_date      DATETIME                                                                        NOT NULL,
-    expiration_date DATETIME CHECK (expiration_date >= start_date),
-    status_         ENUM ('applied','borrowed','expired_borrowing','completed') DEFAULT ('applied') NOT NULL,
+    application_id     BIGINT AUTO_INCREMENT                                                           NOT NULL PRIMARY KEY,
+    user_id            BIGINT                                                                          NOT NULL,
+    ISBN               BIGINT                                                                          NOT NULL,
+    start_date         DATETIME                                                                        NOT NULL,
+    expiration_date    DATETIME CHECK (expiration_date >= start_date),
+    status_            ENUM ('applied','borrowed','expired_borrowing','completed') DEFAULT ('applied') NOT NULL,
     CONSTRAINT FK_application_user FOREIGN KEY (user_id)
         REFERENCES user (user_id)
         ON DELETE CASCADE ON UPDATE CASCADE,
@@ -125,7 +125,7 @@ CREATE TABLE review
     evaluation      TEXT,
     like_scale      ENUM ('1', '2', '3', '4', '5') NOT NULL,
     approval_status ENUM ('approved','pending') DEFAULT 'pending',
-    review_date     DATE NOT NULL,
+    review_date     DATE                           NOT NULL,
     CONSTRAINT FK_book_review FOREIGN KEY (ISBN)
         REFERENCES book (ISBN)
         ON DELETE CASCADE ON UPDATE CASCADE,

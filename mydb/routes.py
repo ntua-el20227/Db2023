@@ -839,7 +839,10 @@ def new_review(ISBN):
             rating = request.form["star_b"]
             id = mysession["user"]["user_id"]
             cur = db.connection.cursor()
-            query = f"""INSERT INTO review (ISBN, user_id, evaluation, like_scale, review_date) VALUES ({ISBN}, {id}, "{opinion}", {rating}, CURDATE())"""
+            if mysession['user']['role'] == "student":
+                query = f"""INSERT INTO review (ISBN, user_id, evaluation, like_scale, review_date) VALUES ({ISBN}, {id}, "{opinion}", {rating}, CURDATE())"""
+            else:
+                query = f"""INSERT INTO review (ISBN, user_id, evaluation, like_scale, review_date,approval_status) VALUES ({ISBN}, {id}, "{opinion}", {rating}, CURDATE(),'approved') """
             cur.execute(query)        
             db.connection.commit()
             flash("Book Review sent", "success")
@@ -856,7 +859,11 @@ def update_review(ISBN):
         if request.method == "POST":
             opinion = request.form["opinion"]
             rating = request.form["star_a"]
-            query = f"""UPDATE review SET evaluation="{opinion}", like_scale={rating}, approval_status='pending', review_date=CURDATE() WHERE ISBN={ISBN} AND user_id={id}"""
+            if mysession['user']['role'] == "student":
+                query = f"""UPDATE review SET evaluation="{opinion}", like_scale={rating}, approval_status='pending', review_date=CURDATE() WHERE ISBN={ISBN} AND user_id={id}"""
+            else:
+                query = f"""UPDATE review SET evaluation="{opinion}", like_scale={rating}, approval_status='approved', review_date=CURDATE() WHERE ISBN={ISBN} AND user_id={id}"""
+
             cur.execute(query)        
             db.connection.commit()
             flash("Book Review sent", "success")

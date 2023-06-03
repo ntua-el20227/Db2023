@@ -20,7 +20,7 @@ def index():
             mysession["school"] = school_id
             return redirect(url_for('schoolpage'))
         flash("Choose a School", "success")
-    query = " SELECT * FROM school"
+    query = " SELECT * FROM school"         
     cur.execute(query)
     record = cur.fetchall()
     school_names = [entry[1] for entry in record]
@@ -410,16 +410,16 @@ def user_accept(user_id):
     return redirect(url_for('index'))
 
 
-@app.route('/schoolpage/userhome/users/<int:user_id>/reject')
-def user_reject(user_id):
+@app.route('/schoolpage/userhome/users/<int:user_id>/remove')
+def user_remove(user_id):
     if 'user' in mysession and 'school' in mysession:
         if mysession['user']['role'] == "handler":
             cur = db.connection.cursor()
-            query = f"DELETE FROM user WHERE user_id = '{user_id}'"
+            query = f" UPDATE user SET status_usr = 'removed' WHERE user_id = '{user_id}'"
             cur.execute(query)
             db.connection.commit()
             cur.close()
-            flash("User discarded", "success")
+            flash("User removed", "success")
             return redirect('/schoolpage/userhome/users')
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))
@@ -457,7 +457,7 @@ def books():
             return redirect('/schoolpage/userhome/books')
         cur = db.connection.cursor()
         school_id = mysession["school"]
-        query = f"""SELECT b.*, q.available_copies, GROUP_CONCAT(a.author_name SEPARATOR ', ') AS author_names, GROUP_CONCAT(c.category SEPARATOR ', ') AS book_categories
+        query = f"""SELECT b.*, q.available_copies, GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ', ') AS author_names, GROUP_CONCAT(DISTINCT c.category ORDER BY c.category SEPARATOR ', ') AS book_categories
         FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}') q 
         INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN categories c ON q.ISBN = c.ISBN
         INNER JOIN author a on q.ISBN = a.ISBN
@@ -466,8 +466,14 @@ def books():
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+        query = "SELECT author_name FROM author"
+        cur.execute(query)
+        authors = cur.fetchall()
+        query = "SELECT category FROM categories"
+        cur.execute(query)
+        categories = cur.fetchall()
         cur.close()
-        return render_template('books.html', user=mysession['user'], title='Books', books=books)
+        return render_template('books.html', user=mysession['user'], title='Books', books=books, authors=authors, categories=categories)
     return redirect(url_for('index'))
 
 
@@ -491,8 +497,10 @@ def add_book(ISBN):
                 return redirect(url_for('books'))
 
             cur = db.connection.cursor()
-            query = f"""SELECT b.*, a.author_name,c.category FROM book b INNER JOIN author a ON b.ISBN = a.ISBN
-                    INNER JOIN categories c ON c.ISBN = b.ISBN WHERE b.ISBN = '{ISBN}'"""
+            query = f"""SELECT b.*, a.author_name,c.category, kw.word FROM book b INNER JOIN author a ON b.ISBN = a.ISBN
+                    INNER JOIN categories c ON c.ISBN = b.ISBN
+                    INNER JOIN key_words kw  ON kw.ISBN = b.ISBN
+                    WHERE b.ISBN = '{ISBN}'"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             book = dict(zip(column_names, cur.fetchone()))
@@ -560,6 +568,8 @@ def bookdetails(ISBN):
                     categories = request.form['category']
                     category_names = categories.split(',')
                     language = request.form['language']
+                    keywords = request.form['keyword']
+                    keyword_names = keywords.split(',')
                     image = request.form['image']
                     copies = request.form['copies']
                     id = mysession["school"]
@@ -583,6 +593,13 @@ def bookdetails(ISBN):
                             query = f"""INSERT INTO author(ISBN, author_name) VALUES ({new_ISBN},"{author}")"""
                             cur.execute(query)
                             db.connection.commit()
+                        query = f"""DELETE FROM key_words WHERE ISBN = {new_ISBN}"""
+                        cur.execute(query)
+                        db.connection.commit()
+                        for keyword in keyword_names:
+                            query = f"""INSERT INTO key_words(word,ISBN) VALUES ("{keyword}",{new_ISBN})"""
+                            cur.execute(query)
+                            db.connection.commit()                          
                         query = f"""UPDATE  stores SET available_copies = {copies} WHERE school_id = {id} AND ISBN = {new_ISBN} """
                         cur.execute(query)
                         db.connection.commit()
@@ -615,9 +632,12 @@ def bookdetails(ISBN):
         cur = db.connection.cursor()
         school_id = mysession["school"]
         query = f""" SELECT b.*, s.available_copies, GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ', ') AS author_names, 
-                     GROUP_CONCAT(DISTINCT c.category ORDER BY c.category SEPARATOR ', ') AS book_categories
-                     FROM (SELECT book.* FROM book WHERE book.ISBN = {ISBN}) b INNER JOIN author a on  a.ISBN = b.ISBN
+                     GROUP_CONCAT(DISTINCT c.category ORDER BY c.category SEPARATOR ', ') AS book_categories,
+                     GROUP_CONCAT(DISTINCT kw.word ORDER BY kw.word SEPARATOR ', ') AS key_words
+                     FROM (SELECT book.* FROM book WHERE book.ISBN = {ISBN}) b 
+                     INNER JOIN author a on  a.ISBN = b.ISBN
                      INNER JOIN categories c on c.ISBN = b.ISBN
+                     INNER JOIN key_words kw on kw.ISBN = b.ISBN
                      INNER JOIN stores s on s.ISBN = b.ISBN
                      WHERE s.school_id = {school_id}
                      GROUP BY b.ISBN, b.title"""

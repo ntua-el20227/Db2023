@@ -70,6 +70,10 @@
                             <input type="text" class="form-control" value="{{book.language_}}" autocomplete="off" name="language" required="1">
                         </div>
                         <div class="form-group">
+                            <label>Keyword:</label>
+                            <input type="text" class="form-control" value="{{book.word}}" autocomplete="off" name="keyword" required="1">
+                        </div>
+                        <div class="form-group">
                             <label>Image:</label>
                             <input type="text" class="form-control" value="{{book.image}}" autocomplete="off" name="image" required="1">
                         </div>
@@ -114,6 +118,10 @@
                     <div class="form-group">
                         <label>Category:</label>
                         <input type="text" class="form-control" value="{{book.book_categories}}" autocomplete="off" name="category" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Keyword:</label>
+                        <input type="text" class="form-control" value="{{book.key_words}}" autocomplete="off" name="keyword" readonly>
                     </div>
                     <div class="form-group">
                         <label>Language:</label>

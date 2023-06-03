@@ -476,13 +476,20 @@ def books():
                     ON ba.ISBN = s.ISBN
                     INNER JOIN author a
                     ON a.author_id = ba.author_id
-                    ORDER BY a.author_name
-                """
+                    ORDER BY a.author_name"""
         cur.execute(query)
-        authors = cur.fetchall()
-        query = "SELECT category_name FROM category"
+        column_names = [i[0] for i in cur.description]
+        authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+        query = f"""SELECT DISTINCT c.category_name 
+                    FROM book_category bc 
+                    INNER JOIN (SELECT ISBN FROM stores WHERE school_id = {school_id}) s
+                    ON bc.ISBN = s.ISBN
+                    INNER JOIN category c
+                    ON c.category_id = bc.category_id
+                    ORDER BY c.category_name"""
         cur.execute(query)
-        categories = cur.fetchall()
+        column_names = [i[0] for i in cur.description]
+        categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
         cur.close()
         return render_template('books.html', user=mysession['user'], title='Books', books=books, authors=authors, categories=categories)
     return redirect(url_for('index'))
@@ -1018,3 +1025,38 @@ def book_reviews(ISBN):
         column_names = [i[0] for i in cur.description]
         reviews = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
         return render_template('bookreviews.html', title='Book Reviews', reviews=reviews, user = mysession["user"])
+    
+@app.route('/schoolpage/userhome/stats')
+def school_stats():
+    if 'user' in mysession and 'school' in mysession:
+        if mysession["user"]['role'] == "handler":
+            cur = db.connection.cursor()
+            query = f"""SELECT u.username, c.category_name, AVG(r.like_scale) AS average_rating
+                            FROM user u
+                            INNER JOIN (SELECT a.user_id, a.ISBN FROM applications a GROUP BY a.user_id, a.ISBN) AS distinct_borrowings
+                            ON u.user_id = distinct_borrowings.user_id
+                            INNER JOIN review r ON distinct_borrowings.ISBN = r.ISBN AND u.user_id = r.user_id
+                            INNER JOIN book_category bc ON distinct_borrowings.ISBN = bc.ISBN
+                            INNER JOIN category c ON bc.category_id = c.category_id
+                            WHERE  1=1
+                            GROUP BY u.username, c.category_name"""
+            cur.execute(query)  
+            column_names = [i[0] for i in cur.description]
+            record = [dict(zip(column_names, entry)) for entry in cur.fetchall()]             
+            school_name = mysession['user']['school_name']
+            query = f"""SELECT username,first_name,last_name FROM user WHERE school_name ='{school_name}' """
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            users = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            school_id = mysession['school']
+            query = f"""SELECT DISTINCT c.category_name 
+                    FROM book_category bc 
+                    INNER JOIN (SELECT ISBN FROM stores WHERE school_id = {school_id}) s
+                    ON bc.ISBN = s.ISBN
+                    INNER JOIN category c
+                    ON c.category_id = bc.category_id
+                    ORDER BY c.category_name"""                
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+        return render_template('handlerstats.html', users = users, categories = categories, record = record)

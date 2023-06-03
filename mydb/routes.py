@@ -20,7 +20,7 @@ def index():
             mysession["school"] = school_id
             return redirect(url_for('schoolpage'))
         flash("Choose a School", "success")
-    query = " SELECT * FROM school"         
+    query = " SELECT * FROM school"
     cur.execute(query)
     record = cur.fetchall()
     school_names = [entry[1] for entry in record]
@@ -457,19 +457,30 @@ def books():
             return redirect('/schoolpage/userhome/books')
         cur = db.connection.cursor()
         school_id = mysession["school"]
-        query = f"""SELECT b.*, q.available_copies, GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ', ') AS author_names, GROUP_CONCAT(DISTINCT c.category ORDER BY c.category SEPARATOR ', ') AS book_categories
+        query = f"""SELECT b.*, q.available_copies,
+        GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ',') AS author_names, 
+        GROUP_CONCAT(DISTINCT c.category_name ORDER BY c.category_name SEPARATOR ',') AS book_categories
         FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}') q 
-        INNER JOIN book b ON b.ISBN = q.ISBN INNER JOIN categories c ON q.ISBN = c.ISBN
-        INNER JOIN author a on q.ISBN = a.ISBN
-        GROUP BY b.ISBN, b.title
-        """
+        INNER JOIN book b ON b.ISBN = q.ISBN
+        INNER JOIN book_category bc ON q.ISBN = bc.ISBN
+        INNER JOIN category c ON bc.category_id = c.category_id
+        INNER JOIN book_author ba ON q.ISBN = ba.ISBN
+        INNER JOIN author a ON a.author_id = ba.author_id
+        GROUP BY b.ISBN, b.title"""
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
-        query = "SELECT author_name FROM author"
+        query = f"""SELECT DISTINCT a.author_name 
+                    FROM book_author ba 
+                    INNER JOIN (SELECT ISBN FROM stores WHERE school_id = {school_id}) s
+                    ON ba.ISBN = s.ISBN
+                    INNER JOIN author a
+                    ON a.author_id = ba.author_id
+                    ORDER BY a.author_name
+                """
         cur.execute(query)
         authors = cur.fetchall()
-        query = "SELECT category FROM categories"
+        query = "SELECT category_name FROM category"
         cur.execute(query)
         categories = cur.fetchall()
         cur.close()
@@ -497,8 +508,15 @@ def add_book(ISBN):
                 return redirect(url_for('books'))
 
             cur = db.connection.cursor()
-            query = f"""SELECT b.*, a.author_name,c.category, kw.word FROM book b INNER JOIN author a ON b.ISBN = a.ISBN
-                    INNER JOIN categories c ON c.ISBN = b.ISBN
+            query = f"""SELECT b.*, 
+                    GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ',') AS author_names, 
+                    GROUP_CONCAT(DISTINCT c.category_name ORDER BY c.category_name SEPARATOR ',') AS book_categories, 
+                    GROUP_CONCAT(DISTINCT kw.word ORDER BY kw.word SEPARATOR ',') AS key_words
+                    FROM book b
+                    INNER JOIN book_author ba on b.ISBN = ba.ISBN 
+                    INNER JOIN author a ON ba.author_id = a.author_id
+                    INNER JOIN book_category bc ON bc.ISBN = b.ISBN
+                    INNER JOIN category c ON c.category_id = bc.category_id
                     INNER JOIN key_words kw  ON kw.ISBN = b.ISBN
                     WHERE b.ISBN = '{ISBN}'"""
             cur.execute(query)
@@ -531,22 +549,35 @@ def new_book():
                 id = mysession["school"]
                 try:
                     cur = db.connection.cursor()
-                    query = f"""INSERT INTO book (ISBN, title, summary, publisher, page_num, language_, image) VALUES ({ISBN},"{title}","{summary}","{publisher}",{pages_num},"{language}","{image}")"""
+                    query = f"""INSERT INTO book (ISBN, title, summary, publisher, page_num, language_, image) 
+                    VALUES ({ISBN},"{title}","{summary}","{publisher}",{pages_num},"{language}","{image}")"""
                     cur.execute(query)
                     db.connection.commit()
                     for category in category_names:
-                        query = f"""INSERT INTO categories(category, ISBN) VALUES ("{category}",{ISBN})"""
+                        query = f"""INSERT IGNORE INTO category(category_name) VALUES ('{category.strip()}')"""
+                        cur.execute(query)
+                        db.connection.commit()
+                        query = f"""  SELECT category_id FROM category WHERE category_name = '{category.strip()}' """
+                        cur.execute(query)
+                        record = cur.fetchone()
+                        query = f"""INSERT IGNORE INTO book_category(ISBN,category_id) VALUES ({ISBN},{record[0]})"""
                         cur.execute(query)
                         db.connection.commit()
                     for author in author_names:
-                        query = f"""INSERT INTO author(ISBN, author_name) VALUES ({ISBN},"{author}")"""
+                        query = f"""INSERT IGNORE INTO author(author_name) VALUES ('{author.strip()}')"""
+                        cur.execute(query)
+                        db.connection.commit()
+                        query = f"""  SELECT author_id FROM author WHERE author_name = '{author.strip()}' """
+                        cur.execute(query)
+                        record = cur.fetchone()
+                        query = f"""INSERT IGNORE INTO book_author(ISBN,author_id) VALUES ({ISBN},{record[0]})"""
                         cur.execute(query)
                         db.connection.commit()
                     for keyword in keyword_names:
-                        query = f"""INSERT INTO key_words(word, ISBN) VALUES ("{keyword}",{ISBN})"""
+                        query = f"""INSERT INTO key_words(word, ISBN) VALUES ('{keyword.strip()}',{ISBN})"""
                         cur.execute(query)
-                        db.connection.commit()   
-                    query = f"""INSERT INTO stores(school_id, ISBN, available_copies) VALUES ("{id}", "{ISBN}","{copies}")"""
+                        db.connection.commit()
+                    query = f"""INSERT INTO stores(school_id, ISBN, available_copies) VALUES ('{id}', '{ISBN}','{copies}')"""
                     cur.execute(query)
                     db.connection.commit()
                     flash("New Book added successfully!", "success")
@@ -582,30 +613,45 @@ def bookdetails(ISBN):
 
                     try:
                         cur = db.connection.cursor()
-                        query = f"""UPDATE book SET ISBN={new_ISBN},title='{title}',summary="{summary}",publisher='{publisher}',page_num={pages_num},language_='{language}',image='{image}' WHERE ISBN = {ISBN}"""
+                        query = f"""UPDATE book SET ISBN={new_ISBN},title='{title}',
+                                    summary='{summary}',publisher='{publisher}',
+                                    page_num={pages_num},language_='{language}',image='{image}' 
+                                    WHERE ISBN = {ISBN}"""
                         cur.execute(query)
                         db.connection.commit()
-                        query = f"""DELETE FROM categories WHERE ISBN = {new_ISBN}"""
+                        query = f"""DELETE FROM book_category WHERE ISBN = {new_ISBN}"""
                         cur.execute(query)
                         db.connection.commit()
                         for category in category_names:
-                            query = f"""INSERT INTO categories(category, ISBN) VALUES ("{category}",{new_ISBN})"""
+                            query = f"""INSERT IGNORE INTO category(category_name) VALUES ('{category.strip()}')"""
                             cur.execute(query)
                             db.connection.commit()
-                        query = f"""DELETE FROM author WHERE ISBN = {new_ISBN}"""
+                            query = f"""SELECT category_id FROM category WHERE category_name = '{category.strip()}' """
+                            cur.execute(query)
+                            record = cur.fetchone()
+                            query = f"""INSERT INTO book_category(ISBN,category_id) VALUES ({new_ISBN},{record[0]})"""
+                            cur.execute(query)
+                            db.connection.commit()
+                        query = f"""DELETE FROM book_author WHERE ISBN = {new_ISBN}"""
                         cur.execute(query)
                         db.connection.commit()
                         for author in author_names:
-                            query = f"""INSERT INTO author(ISBN, author_name) VALUES ({new_ISBN},"{author}")"""
+                            query = f"""INSERT IGNORE INTO author(author_name) VALUES ('{author.strip()}')"""
+                            cur.execute(query)
+                            db.connection.commit()
+                            query = f"""SELECT author_id FROM author WHERE author_name = '{author.strip()}' """
+                            cur.execute(query)
+                            record = cur.fetchone()
+                            query = f"""INSERT INTO book_author(ISBN,author_id) VALUES ({ISBN},{record[0]})"""
                             cur.execute(query)
                             db.connection.commit()
                         query = f"""DELETE FROM key_words WHERE ISBN = {new_ISBN}"""
                         cur.execute(query)
                         db.connection.commit()
                         for keyword in keyword_names:
-                            query = f"""INSERT INTO key_words(word,ISBN) VALUES ("{keyword}",{new_ISBN})"""
+                            query = f"""INSERT INTO key_words(word,ISBN) VALUES ('{keyword.strip()}',{new_ISBN})"""
                             cur.execute(query)
-                            db.connection.commit()                          
+                            db.connection.commit()
                         query = f"""UPDATE  stores SET available_copies = {copies} WHERE school_id = {id} AND ISBN = {new_ISBN} """
                         cur.execute(query)
                         db.connection.commit()
@@ -637,12 +683,15 @@ def bookdetails(ISBN):
 
         cur = db.connection.cursor()
         school_id = mysession["school"]
-        query = f""" SELECT b.*, s.available_copies, GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ', ') AS author_names, 
-                     GROUP_CONCAT(DISTINCT c.category ORDER BY c.category SEPARATOR ', ') AS book_categories,
-                     GROUP_CONCAT(DISTINCT kw.word ORDER BY kw.word SEPARATOR ', ') AS key_words
+        query = f""" SELECT b.*, s.available_copies, 
+                     GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ',') AS author_names, 
+                     GROUP_CONCAT(DISTINCT c.category_name ORDER BY c.category_name SEPARATOR ',') AS book_categories, 
+                     GROUP_CONCAT(DISTINCT kw.word ORDER BY kw.word SEPARATOR ',') AS key_words
                      FROM (SELECT book.* FROM book WHERE book.ISBN = {ISBN}) b 
-                     INNER JOIN author a on  a.ISBN = b.ISBN
-                     INNER JOIN categories c on c.ISBN = b.ISBN
+                     INNER JOIN book_author ba on b.ISBN = ba.ISBN 
+                     INNER JOIN author a ON ba.author_id = a.author_id
+                     INNER JOIN book_category bc ON bc.ISBN = b.ISBN
+                     INNER JOIN category c ON c.category_id = bc.category_id
                      INNER JOIN key_words kw on kw.ISBN = b.ISBN
                      INNER JOIN stores s on s.ISBN = b.ISBN
                      WHERE s.school_id = {school_id}
@@ -651,17 +700,18 @@ def bookdetails(ISBN):
         column_names = [i[0] for i in cur.description]
         book = dict(zip(column_names, cur.fetchone()))
         query = f"""SELECT approved_reviews.like_scale
-        FROM (SELECT * FROM review WHERE approval_status = 'approved' AND ISBN = {ISBN}) approved_reviews
-        INNER JOIN user u 
-        ON u.user_id = approved_reviews.user_id"""
+                    FROM (SELECT * FROM review WHERE approval_status = 'approved' AND ISBN = {ISBN}) 
+                    approved_reviews
+                    INNER JOIN user u 
+                    ON u.user_id = approved_reviews.user_id"""
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
-        score = 0 
+        score = 0
         size = 0
         for entry in cur.fetchall():
             x = dict(zip(column_names, entry))
             score += int(x["like_scale"])
-            size +=1 
+            size += 1
         if size:
             average = str(round(score/size, 2))
         else:
@@ -679,12 +729,11 @@ def reservations():
             query = f""" SELECT u.user_id,u.first_name,u.last_name,u.role_name,
             b.ISBN,b.title,a.start_date
             ,a.expiration_date,a.application_id
-FROM applications a
-INNER JOIN user u ON a.user_id = u.user_id 
-INNER JOIN book b ON a.ISBN = b.ISBN
-WHERE a.status_ = 'applied' AND u.school_name = '{school_name}' 
-ORDER BY a.start_date;
-"""
+            FROM applications a
+            INNER JOIN user u ON a.user_id = u.user_id 
+            INNER JOIN book b ON a.ISBN = b.ISBN
+            WHERE a.status_ = 'applied' AND u.school_name = '{school_name}' 
+            ORDER BY a.start_date;"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             reservations = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -693,10 +742,10 @@ ORDER BY a.start_date;
         user_id = mysession["user"]["user_id"]
         cur = db.connection.cursor()
         query = f""" SELECT b.ISBN,b.title,a.start_date,a.expiration_date
-FROM applications a
-INNER JOIN user u ON a.user_id = u.user_id
-INNER JOIN book b ON a.ISBN = b.ISBN
-WHERE a.status_ = 'applied' AND u.user_id = {user_id} """
+                     FROM applications a
+                     INNER JOIN user u ON a.user_id = u.user_id
+                     INNER JOIN book b ON a.ISBN = b.ISBN
+                     WHERE a.status_ = 'applied' AND u.user_id = {user_id} """
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         reservations = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -869,7 +918,7 @@ def new_review(ISBN):
                 query = f"""INSERT INTO review (ISBN, user_id, evaluation, like_scale, review_date) VALUES ({ISBN}, {id}, "{opinion}", {rating}, CURDATE())"""
             else:
                 query = f"""INSERT INTO review (ISBN, user_id, evaluation, like_scale, review_date,approval_status) VALUES ({ISBN}, {id}, "{opinion}", {rating}, CURDATE(),'approved') """
-            cur.execute(query)        
+            cur.execute(query)
             db.connection.commit()
             flash("Book Review sent", "success")
             return redirect('/schoolpage/userhome/history')
@@ -886,11 +935,11 @@ def update_review(ISBN):
             opinion = request.form["opinion"]
             rating = request.form["star_a"]
             if mysession['user']['role'] == "student":
-                query = f"""UPDATE review SET evaluation="{opinion}", like_scale={rating}, approval_status='pending', review_date=CURDATE() WHERE ISBN={ISBN} AND user_id={id}"""
+                query = f"""UPDATE review SET evaluation='{opinion}', like_scale={rating}, approval_status='pending', review_date=CURDATE() WHERE ISBN={ISBN} AND user_id={id}"""
             else:
-                query = f"""UPDATE review SET evaluation="{opinion}", like_scale={rating}, approval_status='approved', review_date=CURDATE() WHERE ISBN={ISBN} AND user_id={id}"""
+                query = f"""UPDATE review SET evaluation='{opinion}', like_scale={rating}, approval_status='approved', review_date=CURDATE() WHERE ISBN={ISBN} AND user_id={id}"""
 
-            cur.execute(query)        
+            cur.execute(query)
             db.connection.commit()
             flash("Book Review sent", "success")
             return redirect('/schoolpage/userhome/history')
@@ -908,7 +957,7 @@ def update_review(ISBN):
 def reviews():
     if 'user' in mysession and 'school' in mysession:
         if mysession["user"]['role'] == "handler":
-            school_name =  mysession["user"]['school_name'] 
+            school_name =  mysession["user"]['school_name']
             cur = db.connection.cursor()
             query = f"""SELECT u.user_id, u.first_name, u.last_name,b.title, r.ISBN, r.evaluation, r.like_scale, r.review_date
 FROM user u

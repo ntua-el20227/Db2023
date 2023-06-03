@@ -10,3 +10,5 @@ CREATE INDEX idx_book_title ON book(title);
 CREATE INDEX idx_book_language ON book(language_);
 
 CREATE INDEX idx_stores_available_copies ON stores (available_copies);
+
+CREATE INDEX idx_category_name ON category(category_name);

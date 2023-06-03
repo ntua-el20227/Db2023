@@ -45,7 +45,7 @@ CREATE EVENT check_not_returned_books
     WHERE expiration_date < NOW()
       AND status_ = 'borrowed';
 
-CREATE EVENT check_applications
+CREATE EVENT check_applications/* Configure*/
     ON SCHEDULE
         EVERY 5 MINUTE
             STARTS NOW()
@@ -168,7 +168,7 @@ CREATE EVENT flush_cache
           AND status_ = 'completed';
     END;
 
-CREATE TRIGGER duplicate_applyborrow
+CREATE TRIGGER duplicate_apply_borrow
     BEFORE
         INSERT
     ON applications
@@ -185,8 +185,11 @@ CREATE TRIGGER expired_borrow_penalty
     ON applications
     FOR EACH ROW
 BEGIN
-    IF (SELECT COUNT(*) FROM applications WHERE status_ != 'expired_borrowing'
-    AND NEW.user_id = user_id AND NEW.ISBN = ISBN) != 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'You cannot apply for borrow when u have and expired borrowing' ;
+    IF (SELECT COUNT(*)
+        FROM applications
+        WHERE status_ != 'expired_borrowing'
+          AND NEW.user_id = user_id
+          AND NEW.ISBN = ISBN) > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'You cannot apply for borrow when u have an expired borrowing';
     END IF;
 END;

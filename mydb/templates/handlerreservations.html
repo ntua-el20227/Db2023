@@ -1,0 +1,82 @@
+{% extends "global_layout.html" %}
+{% block content %}
+{% include "flash_messages.html" %}
+{% include "handlernavbar.html" %}
+{% include "pwdmodal.html" %}
+
+    <div class="row">
+    <div class="col-md-12">
+        <div class="jumbotron p-3">
+            <h2>Reservations
+                <button type="button" class="btn btn-success float-end"
+                data-bs-toggle="modal", data-bs-target="#addmodal">
+                <i class="bi bi-plus-lg"></i>
+                </button>
+            </h2>
+            <div class="card" id="card-container">
+                <div class="card-body" id="card">
+                    <table class="table table-striped table-sm table-borderless">
+                        <thead>
+                            <tr>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th>Teacher/Student</th>
+                                <th>ISBN</th>
+                                <th>Title</th>
+                                <th>Reservation made at</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for reservation in reservations %}
+                            <tr>
+                                <td> {{reservation.first_name}} </td>
+                                <td> {{reservation.last_name}} </td>
+                                <td> {{reservation.role_name}} </td>
+                                <td> {{reservation.ISBN}} </td>
+                                <td>{{reservation.title}}</td>
+                                <td>{{reservation.start_date}} </td>
+                                <td>
+                                    <a href="/schoolpage/userhome/reservations/{{reservation.application_id}}/accept"> <button class="btn btn-success btn-xs"> <i class="bi bi-check2"></i>  </button></a>
+                                    
+                                    <a href="/schoolpage/userhome/reservations/{{reservation.application_id}}/reject"> <button class="btn btn-danger btn-xs"
+                                    onclick="return confirm('Are you sure you want to Reject?')" > <i class="bi bi-x-lg"></i> </button></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="addmodal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Make a Reservation</h4>
+            </div>
+            <div class="modal-body">
+                <form action="/schoolpage/userhome/reservations/create" method="POST">
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" autocomplete="off" class="form-control" name="username" required="1">
+
+                    <div class="form-group">
+                        <label>ISBN:</label>
+                        <input type="number" autocomplete="off" class="form-control" name="isbn" required="1">
+                    </div>  
+                    <div class="form-group">
+                        <button class="btn btn-primary" type="submit">Reserve</button>
+                     </div>
+                     <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> 
+                     </div>
+                </form>   
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "global_layout.html" %}
+{% block content %}
+{% include "flash_messages.html" %}
+{% include "handlernavbar.html" %}
+{% include "pwdmodal.html" %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="jumbotron p-3">
+            <h2>Stats for Average User Scores per Book Category</h2>
+            <br>
+            <div class="card" id="card-container">
+                <div class="card-body" id="card">   
+                <h4>Filter: </h4>
+                <form action="/schoolpage/userhome/apply_stats" method="POST">
+                <h6><label for="user">User Filter:</label></h6>
+                    <input list="users" autocomplete="off" placeholder="Username" id="user" name="user">
+                    
+                    <datalist id="users">
+                        {% for username in usernames %}
+                        <option value="{{username}}">
+                        {% endfor %}
+                    </datalist>
+                    <br> <br>
+                    <h6><label for="category">Category Filter:</label></h6>
+                    <input list="categories" autocomplete="off" placeholder="Category" id="category" name="category">                   
+                    <datalist id="categories">
+                        {% for category in categories %}
+                        <option value="{{category}}">
+                        {% endfor %}
+                    </datalist>
+                    <br> <br>
+                <div class="form-group">
+                        <button class="btn btn-primary" type="submit">Apply</button>
+                </div>
+                </form>
+                </div>
+                </div>
+         
+        {% for user in filterusers %}
+        <div class="card" id="card-container">
+            <div class="card-body" id="card">   
+            <h4>{{user.first_name}} {{user.last_name}} - ({{user.username}}) </h4>
+            <br>
+            {% for category in filtercategories %}
+            <h6>{{category.}} with score {{category.score}} ⭐ </h6>
+
+            {% endfor %}
+                
+            </div>
+            </div>
+            </div>
+
+        
+        {% endfor %}
+
+
+        </div>
+    </div>    
+</div>    
+
+
+
+
+{% endblock %}

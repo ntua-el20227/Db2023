@@ -1,0 +1,115 @@
+{% extends "global_layout.html" %}
+{% block content %}
+{% include "flash_messages.html" %}
+{% if user['role'] == "handler" %}
+        {% include "handlernavbar.html" %}
+    {% else %}
+        {% include "usernavbar.html" %}
+        {% include "profilemodal.html" %}
+    {% endif %}
+{% include "pwdmodal.html" %}
+
+<div class="row">
+    <h2>Books of our school
+    {% if user['role'] == "handler" %}
+      <a href="/schoolpage/userhome/books/create"> <button type="button" class="btn btn-success float-end">
+        <i class="bi bi-plus-lg"></i>
+        </button></a>
+        
+     {% endif %}
+     <br></h2>
+     {% if user['role'] == "handler" %} 
+     <form action="/schoolpage/userhome/books" method="POST" class="d-flex">
+        <input class="form-control me-2" autocomplete="off" type="number" name="book" placeholder="Search Database for ISBN" aria-label="Search" >
+
+        <button class="btn btn-outline-primary" type="submit">Search to Add</button>   
+      </form>
+    {% endif %}
+    
+        <div class="col-6">
+            <div class="jumbotron p-3">
+                <br>
+                <div class="card" id="card-container">
+                    <div class="card-body" id="card">    
+                        <h4><label for="booktitle">Search for a Title:</label></h4>
+                        <input list="titles" autocomplete="off" id="booktitle" name="booktitle">
+                        
+                        <datalist id="titles">
+                            {% for book in books %}
+                            <option value="{{book.title}}">
+                            {% endfor %}
+                        </datalist>
+                    
+                    
+                    <div class="form-group">
+                       
+                        <br>
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </div>
+                </div>
+            </div>  
+            </div>
+        </div>
+            
+            <div class="col-6">
+                <div class="jumbotron p-3">
+                    <br>
+                    <div class="card" id="card-container">
+                <div class="card-body" id="card">   
+                <h4>Filter Table: </h4>
+                <h6><label for="bookcategory">Category Filter:</label></h6>
+                    <input list="categories" autocomplete="off" id="bookcategory" name="bookcategory">
+                    
+                    <datalist id="categories">
+                        {% for category in categories %}
+                        <option value="{{category}}">
+                        {% endfor %}
+                    </datalist>
+                    <br> <br>
+                    <h6><label for="bookauthor">Author Filter:</label></h6>
+                    <input list="authors" autocomplete="off" id="bookauthor" name="bookauthor">
+                    
+                    <datalist id="authors">
+                        {% for author in authors %}
+                        <option value="{{author}}">
+                        {% endfor %}
+                    </datalist>
+                    <br> <br>
+                {% if user['role'] == "handler" %}
+                    <h6>Books with available copies = <input type="number"> </h6>
+                    {% endif %}   
+                <div class="form-group">
+                        <button class="btn btn-primary" type="submit">Apply</button>
+                </div>
+                </div>
+                </div>
+                <br>   <br> 
+        </div>    
+        </div>
+
+
+    
+    {% for book in books %}
+    <div class="col-3">
+        <div class="jumbotron p-3">
+            <div class="card" id="card-container" style="width: 14rem;">
+               <a href="/schoolpage/userhome/books/{{book.ISBN}}/details"> <img src={{book.image}}
+                 class="card-img-top"> </a>
+                <div class="card-body" id="card">
+                    <h6 class="card-title">{{book.title}}</h6>
+                    <p>
+                        Author:
+                    </p>
+                    <p>{{book.author_names}}</p>
+                        
+ 
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+</div>
+
+
+{% endblock %}

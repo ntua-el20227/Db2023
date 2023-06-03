@@ -1,0 +1,71 @@
+{% extends "global_layout.html" %}
+{% block content %}
+{% include "flash_messages.html" %}
+{% include "handlernavbar.html" %}
+{% include "pwdmodal.html" %}
+
+<h2> Add a book that does not exist to School Libraries 📚 Database</h2>
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="jumbotron p-3">
+        <div class="card">
+            <div class="row card-body">
+                        <form action="/schoolpage/userhome/books/create" method="POST">
+                        <div class="form-group">
+                            <label>ISBN:</label>
+                            <input type="number" class="form-control" autocomplete="off" name="isbn" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Title:</label>
+                            <input type="text" class="form-control" autocomplete="off" name="title" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Summary:</label>
+                            <textarea name="summary" class="form-control" autocomplete="off" cols="50" rows="8" required="1"></textarea>
+                            
+                        </div>
+                        <div class="form-group">
+                            <label>Author:</label>
+                            <input type="text" class="form-control" autocomplete="off" name="author" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Publisher:</label>
+                            <input type="text" class="form-control"  autocomplete="off" name="publisher" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Pages:</label>
+                            <input type="number" class="form-control" autocomplete="off" name="pages" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Category:</label>
+                            <input type="text" class="form-control"  autocomplete="off" name="category" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Keyword:</label>
+                            <input type="text" class="form-control"  autocomplete="off" name="keyword" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Language:</label>
+                            <input type="text" class="form-control" autocomplete="off" name="language" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Image Source (Link):</label>
+                            <input type="text" class="form-control" autocomplete="off" name="image" required="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Available Copies in School:</label>
+                            <input type="number" class="form-control" autocomplete="off" name="copies" required="1">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" type="submit">Add Book</button>
+                         </div>
+                    </form>
+                </div>        
+            </div>
+        </div>
+    </div>
+</div>    
+
+
+{% endblock %}

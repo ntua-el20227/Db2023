@@ -523,6 +523,8 @@ def new_book():
                 pages_num = request.form['pages']
                 categories = request.form['category']
                 category_names = categories.split(',')
+                keywords = request.form['keyword']
+                keyword_names = keywords.split(',')
                 language = request.form['language']
                 image = request.form['image']
                 copies = request.form['copies']
@@ -540,6 +542,10 @@ def new_book():
                         query = f"""INSERT INTO author(ISBN, author_name) VALUES ({ISBN},"{author}")"""
                         cur.execute(query)
                         db.connection.commit()
+                    for keyword in keyword_names:
+                        query = f"""INSERT INTO key_words(word, ISBN) VALUES ("{keyword}",{ISBN})"""
+                        cur.execute(query)
+                        db.connection.commit()   
                     query = f"""INSERT INTO stores(school_id, ISBN, available_copies) VALUES ("{id}", "{ISBN}","{copies}")"""
                     cur.execute(query)
                     db.connection.commit()

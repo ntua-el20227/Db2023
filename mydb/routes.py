@@ -744,8 +744,22 @@ def reservations():
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             reservations = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            school_id = mysession["school"]
+            query = f"""SELECT b.*, q.available_copies,
+        GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ',') AS author_names, 
+        GROUP_CONCAT(DISTINCT c.category_name ORDER BY c.category_name SEPARATOR ',') AS book_categories
+        FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}') q 
+        INNER JOIN book b ON b.ISBN = q.ISBN
+        INNER JOIN book_category bc ON q.ISBN = bc.ISBN
+        INNER JOIN category c ON bc.category_id = c.category_id
+        INNER JOIN book_author ba ON q.ISBN = ba.ISBN
+        INNER JOIN author a ON a.author_id = ba.author_id
+        GROUP BY b.ISBN, b.title"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
             cur.close()
-            return render_template('handlerreservations.html', title='Reservations', reservations=reservations)
+            return render_template('handlerreservations.html', title='Reservations', reservations=reservations, books=books)
         user_id = mysession["user"]["user_id"]
         cur = db.connection.cursor()
         query = f""" SELECT b.ISBN,b.title,a.start_date,a.expiration_date
@@ -756,9 +770,7 @@ def reservations():
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         reservations = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
-        cur.close()
-        return render_template('myreservations.html', title='Reservations', reservations=reservations,
-                               user=mysession["user"])
+        return render_template('myreservations.html', title='Reservations', reservations=reservations, user=mysession["user"])
     return redirect(url_for('index'))
 
 
@@ -1025,7 +1037,10 @@ def book_reviews(ISBN):
         column_names = [i[0] for i in cur.description]
         reviews = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
         return render_template('bookreviews.html', title='Book Reviews', reviews=reviews, user = mysession["user"])
-    
+    return redirect(url_for('userhome'))
+
+
+
 @app.route('/schoolpage/userhome/stats')
 def school_stats():
     if 'user' in mysession and 'school' in mysession:
@@ -1042,12 +1057,7 @@ def school_stats():
                             GROUP BY u.username, c.category_name"""
             cur.execute(query)  
             column_names = [i[0] for i in cur.description]
-            record = [dict(zip(column_names, entry)) for entry in cur.fetchall()]             
-            school_name = mysession['user']['school_name']
-            query = f"""SELECT username,first_name,last_name FROM user WHERE school_name ='{school_name}' """
-            cur.execute(query)
-            column_names = [i[0] for i in cur.description]
-            users = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            records = [dict(zip(column_names, entry)) for entry in cur.fetchall()]             
             school_id = mysession['school']
             query = f"""SELECT DISTINCT c.category_name 
                     FROM book_category bc 
@@ -1059,4 +1069,53 @@ def school_stats():
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
-        return render_template('handlerstats.html', users = users, categories = categories, record = record)
+            return render_template('handlerstats.html', categories = categories, records = records)
+        return redirect(url_for('userhome'))
+    return redirect(url_for('index'))    
+
+
+
+@app.route('/schoolpage/userhome/apply_stats', methods=['POST'])
+def school_applied_stats():
+    if 'user' in mysession and 'school' in mysession:
+        if mysession["user"]['role'] == "handler":
+            cur = db.connection.cursor()
+            username = request.form['username']
+            category = request.form['category']
+            params = []
+            query = """SELECT u.username, c.category_name, AVG(r.like_scale) AS average_rating
+                       FROM user u
+                       INNER JOIN (SELECT a.user_id, a.ISBN FROM applications a GROUP BY a.user_id, a.ISBN) AS distinct_borrowings
+                           ON u.user_id = distinct_borrowings.user_id
+                       INNER JOIN review r ON distinct_borrowings.ISBN = r.ISBN AND u.user_id = r.user_id
+                       INNER JOIN book_category bc ON distinct_borrowings.ISBN = bc.ISBN
+                       INNER JOIN category c ON bc.category_id = c.category_id
+                       WHERE 1=1 """
+            if username:
+                query += " AND u.username LIKE %s"
+                username_term = '%' + username + '%'
+                params.append(username_term)
+            if category:
+                query += " AND c.category_name LIKE %s"
+                category_term = '%' + category + '%'
+                params.append(category_term)
+            query += " GROUP BY u.username, c.category_name"
+            cur.execute(query, tuple(params))
+            column_names = [i[0] for i in cur.description]
+            records = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            school_id = mysession['school']
+            query = f"""SELECT DISTINCT c.category_name
+                        FROM book_category bc
+                        INNER JOIN (SELECT ISBN FROM stores WHERE school_id = {school_id}) s
+                            ON bc.ISBN = s.ISBN
+                        INNER JOIN category c
+                            ON c.category_id = bc.category_id
+                        ORDER BY c.category_name"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            return render_template('handlerstats.html', categories=categories, records=records)
+        return redirect(url_for('userhome'))
+    return redirect(url_for('index'))
+    
+    

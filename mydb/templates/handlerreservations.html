@@ -62,11 +62,16 @@
                     <div class="form-group">
                         <label>Username:</label>
                         <input type="text" autocomplete="off" class="form-control" name="username" required="1">
-
-                    <div class="form-group">
-                        <label>ISBN:</label>
-                        <input type="number" autocomplete="off" class="form-control" name="isbn" required="1">
-                    </div>  
+                        <label for="booktitle" class="form-label">ISBN:</label>
+                        <br>
+                        <input class="form-control" list="titles" autocomplete="off" id="booktitle" name="isbn">
+                        
+                        <datalist id="titles">
+                            {% for book in books %}
+                            <option value="{{book.ISBN}}">
+                            {% endfor %}
+                        </datalist>
+                         
                     <div class="form-group">
                         <button class="btn btn-primary" type="submit">Reserve</button>
                      </div>

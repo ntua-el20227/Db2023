@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS applications
     ISBN            BIGINT                                                                                   NOT NULL,
     start_date      DATETIME                                                                                 NOT NULL,
     expiration_date DATETIME CHECK (expiration_date >= start_date),
-    status_         ENUM ('applied','borrowed','expired_borrowing','completed','queued') DEFAULT ('applied') NOT NULL,
+    status_         ENUM ('applied','borrowed','expired_borrowing','completed','queued') DEFAULT ('queued') NOT NULL,
     CONSTRAINT FK_application_user FOREIGN KEY (user_id)
         REFERENCES user (user_id)
         ON DELETE CASCADE ON UPDATE CASCADE,

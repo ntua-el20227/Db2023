@@ -998,6 +998,7 @@ def new_review(ISBN):
     return redirect(url_for('index'))
 
 
+
 @app.route('/schoolpage/userhome/<int:ISBN>/update_review', methods=["GET", "POST"])
 def update_review(ISBN):
     if 'user' in mysession and 'school' in mysession:
@@ -1451,7 +1452,13 @@ def stats4():
 FROM author a
 LEFT JOIN book_author ba ON a.author_id = ba.author_id
 LEFT JOIN applications app ON ba.ISBN = app.ISBN
-WHERE app.status_ NOT IN ('borrowed','expired_borrowing','completed')"""
+WHERE app.ISBN IS NULL
+UNION
+SELECT DISTINCT a.author_name
+FROM author a
+JOIN book_author ba ON a.author_id = ba.author_id
+JOIN applications app ON ba.ISBN = app.ISBN
+WHERE app.status_ NOT IN ('borrowed', 'completed', 'expired_borrowing')"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -1465,20 +1472,7 @@ def stats5():
     if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
-            query = """SELECT s.school_name,
-COUNT(*) AS books_borrowed,
-GROUP_CONCAT(DISTINCT CONCAT(u_handlers.first_name, ' ', u_handlers.last_name) SEPARATOR ', ') AS handlers
-FROM school s
-INNER JOIN
-user u_handlers ON s.school_name = u_handlers.school_name AND u_handlers.role_name = 'handler'
-INNER JOIN
-user u_students ON s.school_name = u_students.school_name AND u_students.role_name IN ('student', 'teacher')
-INNER JOIN
-applications a ON u_students.user_id = a.user_id
-WHERE a.status_ IN ('borrowed', 'completed', 'expired_borrowing')
-AND a.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
-GROUP BY s.school_name
-HAVING COUNT(*) > 20"""
+            query = """???"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             handlers = [dict(zip(column_names, entry)) for entry in cur.fetchall()]

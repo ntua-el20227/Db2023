@@ -14,16 +14,16 @@
                 <table class="table table-striped table-sm table-borderless">
                     <thead>
                         <tr>
-                            <th>Category</th>
-                            <th>Category</th>
+                            <th>Category 1</th>
+                            <th>Category 2</th>
                             <th>Number of Borrows</th>
                         </tr>
                     </thead>
                     <tbody>
                     {% for pair in category_pairs %}
                         <tr>
-                            <td> {{pair.category_name}} </td>
-                            <td> {{pair.category_name}} </td>
+                            <td> {{pair.category_name_1}} </td>
+                            <td> {{pair.category_name_2}} </td>
                             <td> {{pair.pair_count}} </td>
                         </tr>
                         

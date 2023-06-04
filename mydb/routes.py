@@ -1182,6 +1182,7 @@ GROUP BY b.title"""
             categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
             cur.close()
             return render_template('books.html', user=mysession['user'], title='Books', books=books, authors=authors, categories=categories)
+        return redirect(url_for('books'))
     return redirect(url_for('index'))
 
 

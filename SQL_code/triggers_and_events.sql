@@ -166,7 +166,7 @@ CREATE EVENT event_check_book_availability
             INNER JOIN stores s ON a.ISBN = s.ISBN
         SET a.status_ = 'applied',s.available_copies = s.available_copies - 1
         WHERE a.status_ = 'queued'
-          AND s.available_copies > 0;
+          AND s.available_copies > 0
          ORDER BY a.start_date ASC
         LIMIT 1;
     END;

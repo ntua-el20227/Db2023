@@ -1472,7 +1472,20 @@ def stats5():
     if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
-            query = """???"""
+            query = """SELECT s.school_name,
+COUNT(*) AS books_borrowed,
+u_handlers.first_name AS handlers
+FROM school s
+INNER JOIN
+user u_handlers ON s.school_name = u_handlers.school_name AND u_handlers.role_name = 'handler'
+INNER JOIN
+user u_students ON s.school_name = u_students.school_name AND u_students.role_name IN ('student', 'teacher')
+INNER JOIN
+applications a ON u_students.user_id = a.user_id
+WHERE a.status_ IN ('borrowed', 'completed', 'expired_borrowing')
+AND a.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+GROUP BY s.school_name
+HAVING COUNT(*) > 20"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             handlers = [dict(zip(column_names, entry)) for entry in cur.fetchall()]

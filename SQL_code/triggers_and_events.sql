@@ -70,12 +70,12 @@ BEGIN
                                     INNER JOIN school s ON s.school_name = u.school_name)) > 0 THEN
         SET NEW.status_ = 'applied';
         SET NEW.start_date = NOW();
-        SET NEW.expiration_date = DATE_ADD(NOW(), INTERVAL 3 MINUTE);
+        SET NEW.expiration_date = DATE_ADD(NOW(), INTERVAL 1 WEEK);
     END IF;
 
     IF NEW.status_ = 'applied' THEN
         SET NEW.start_date = NOW();
-        SET NEW.expiration_date = DATE_ADD(NOW(), INTERVAL 3 MINUTE);
+        SET NEW.expiration_date = DATE_ADD(NOW(), INTERVAL 1 WEEK);
         UPDATE stores
         SET stores.available_copies = stores.available_copies - 1
         WHERE stores.ISBN = NEW.ISBN
@@ -91,7 +91,7 @@ BEGIN
         UPDATE user
         SET active_reservations = active_reservations + 1 WHERE user_id = NEW.user_id;
         SET NEW.start_date = NOW();
-        SET NEW.expiration_date = DATE_ADD(NOW(), INTERVAL 3 MINUTE);
+        SET NEW.expiration_date = DATE_ADD(NOW(), INTERVAL 1 WEEK);
     END IF;
 
     IF (NEW.status_ != 'applied' AND NEW.status_ != 'queued') THEN

@@ -831,7 +831,7 @@ def reservation_accept(application_id):
                 cur.close()
                 flash("Book is borrowed", "success")
             except Exception as e:
-                flash("This book has no available copies", "success")
+                flash(str(e), "success")
                 query = """UPDATE applications 
                             SET applications.expiration_date = DATE_ADD(applications.start_date,INTERVAL 2 MONTH); 
                         """
@@ -949,21 +949,29 @@ def new_reservation():
             if request.method == 'POST':
                 username = request.form['username']
                 ISBN = request.form['isbn']
-                try:
-                    cur = db.connection.cursor()
-                    query = f"""Select user_id FROM user WHERE username = '{username}' """
+                school_name = mysession["user"]['school_name']
+                school_id = mysession["school"]
+                cur = db.connection.cursor()
+                query = f"""Select * from user WHERE username = '{username}' and school_name = '{school_name}'"""
+                cur.execute(query)
+                record = cur.fetchone()
+                if record:
+                    query = f"""Select * FROM stores WHERE ISBN = {ISBN} and school_id = {school_id} """
                     cur.execute(query)
-                    record = cur.fetchone()
-                    if record:
-                        id = record[0]
-                        query = f"""INSERT INTO applications(user_id, ISBN, start_date) VALUES ('{id}', '{ISBN}',CURDATE())"""
-                        cur.execute(query)
-                        db.connection.commit()
-                        flash("Book reserved successfully!", "success")
+                    record2 = cur.execute(query)
+                    if record2:
+                        try:
+                            id = record[0]
+                            query = f"""INSERT INTO applications(user_id, ISBN, start_date) VALUES ('{id}', '{ISBN}',CURDATE())"""
+                            cur.execute(query)
+                            db.connection.commit()
+                            flash("Book reserved successfully!", "success")
+                        except Exception as e:
+                            flash(str(e), "success")
                     else:
-                        flash("Username does not exist in database", "success")
-                except Exception as e:
-                    flash(str(e), "success")
+                        flash("School has no book", "success")
+                else:
+                    flash("Invalid username", "success")
                 return redirect(url_for('reservations'))
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))
@@ -1484,7 +1492,7 @@ def stats6_applied():
     if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
-            query = """SELECT c1.category_name, c2.category_name, COUNT(app.ISBN) AS pair_count
+            query = """SELECT c1.category_name AS category_name_1, c2.category_name AS category_name_2, COUNT(app.ISBN) AS pair_count
 FROM book_category bc1
 JOIN book_category bc2 ON bc1.ISBN = bc2.ISBN AND bc1.category_id < bc2.category_id
 JOIN category c1 ON bc1.category_id = c1.category_id

@@ -1244,12 +1244,12 @@ def book_filter():
 
         if author:
             query += "AND a.author_name LIKE %s "
-            author_term =  author 
+            author_term = '%' + author + '%'
             params.append(author_term)
 
         if category:
             query += "AND c.category_name LIKE %s "
-            category_term = category 
+            category_term = '%' + category + '%'
             params.append(category_term)
 
         if mysession["user"]["role"] == "handler":

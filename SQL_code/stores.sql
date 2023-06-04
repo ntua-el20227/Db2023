@@ -21,7 +21,6 @@ INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('1', '97896043673
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('1', '9786180142945', '2');
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('1', '9786182150986', '2');
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('2', '9789604847549', '3');
-INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('2', '9786185111656', '4');
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('2', '9786180328288', '1');
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('2', '9789609453110', '2');
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('2', '9786180201833', '7');
@@ -69,13 +68,6 @@ INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '97896038201
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9786180311105', '2');
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9789606353635', '2');
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9789604847549', '2');
-INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9786185111656', '2');
-INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9786180328288', '2');
-INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9789609453110', '2');
-INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9786180201833', '2');
-INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9789604367320', '2');
-INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9786180142945', '2');
-INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9786182150986', '2');
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9786185111656', '2');
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9786180328288', '2');
 INSERT INTO stores (school_id, ISBN, available_copies) VALUES ('3', '9789609453110', '2');

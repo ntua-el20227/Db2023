@@ -1,5 +1,7 @@
 /* Create the Database */
 
+CREATE DATABASE db2023;
+
 USE db2023;
 
 SET GLOBAL event_scheduler = ON;

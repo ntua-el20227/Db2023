@@ -65,6 +65,8 @@ def adminbackup():
             return redirect(url_for('adminhome'))
     return redirect(url_for('index'))
 
+
+
 @app.route("/adminhome/restore")
 def adminrestore():   
     if 'status' in mysession:
@@ -73,6 +75,8 @@ def adminrestore():
             flash("Databased restored", "success")
             return redirect(url_for('adminhome'))
     return redirect(url_for('index'))
+
+
 
 @app.route('/adminhome/pwd', methods=['POST'])  # checked
 def adminpwd():
@@ -92,6 +96,7 @@ def adminpwd():
             flash("Passwords do not match", "success")
             return redirect(url_for('adminhome'))
     return redirect(url_for('index'))
+
 
 
 @app.route('/adminhome/schools')  # checked
@@ -185,6 +190,7 @@ def school_edit(school_id):
     return redirect(url_for('index'))
 
 
+
 @app.route("/adminhome/schools/<int:school_id>/delete")  # checked
 def school_delete(school_id):
     if 'status' in mysession:
@@ -228,6 +234,7 @@ def handler_accept(handler_id):
                 flash(str(e), "success")
             return redirect('/adminhome/handlers')
     return redirect(url_for('index'))
+
 
 
 @app.route('/adminhome/handlers/<int:handler_id>/reject')
@@ -309,7 +316,7 @@ def login():
                                      'active_borrows': record[7], 'role': record[8], 'school_name': record[9],
                                      'active_reservations': record[10]}
                 return redirect(url_for('userhome'))
-            flash("User is not activated yet", "success")
+            flash("This user is not active", "success")
             return redirect(url_for('schoolpage'))
         flash("Wrong credentials", "success")
         return redirect(url_for('schoolpage'))
@@ -447,6 +454,20 @@ def user_remove(user_id):
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))
 
+
+@app.route('/schoolpage/userhome/users/<int:user_id>/reject')
+def user_reject(user_id):
+    if 'user' in mysession and 'school' in mysession:
+        if mysession['user']['role'] == "handler":
+            cur = db.connection.cursor()
+            query = f"DELETE FROM user WHERE user_id = '{user_id}'"
+            cur.execute(query)
+            db.connection.commit()
+            cur.close()
+            flash("User discarded", "success")
+            return redirect('/schoolpage/userhome/users')
+        return redirect(url_for('userhome'))
+    return redirect(url_for('index'))
 
 
 @app.route('/schoolpage/userhome/users/<int:user_id>/deactivate')
@@ -617,6 +638,7 @@ def new_book():
             return render_template('bookcreate.html', title='Add a Book')
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))
+
 
 
 @app.route('/schoolpage/userhome/books/<int:ISBN>/details', methods=['GET', 'POST'])  # checked
@@ -1116,11 +1138,11 @@ def school_applied_stats():
                        WHERE 1=1 """
             if username:
                 query += " AND u.username LIKE %s"
-                username_term = '%' + username + '%'
+                username_term =  username 
                 params.append(username_term)
             if category:
                 query += " AND c.category_name LIKE %s"
-                category_term = '%' + category + '%'
+                category_term =  category 
                 params.append(category_term)
             query += " GROUP BY u.username, c.category_name"
             cur.execute(query, tuple(params))
@@ -1221,9 +1243,10 @@ def book_filter():
             category_term = '%' + category + '%'
             params.append(category_term)
 
-        if number:
-            query += "AND q.available_copies LIKE %s "
-            params.append(number)
+        if mysession["user"]["role"] == "handler":
+            if number:
+                query += "AND q.available_copies LIKE %s "
+                params.append(number)
 
         query += "GROUP BY b.ISBN"
 
@@ -1278,23 +1301,23 @@ def borrow_filter():
             last_name = request.form["last_name"]
             days = request.form["days"]
             params = []
-            query = f""" SELECT u.username, u.first_name, u.last_name, u.role_name, expired_applications.ISBN
+            query = f""" SELECT u.username, u.first_name, u.last_name, u.role_name, expired_applications.ISBN, expired_applications.start_date, expired_applications.expiration_date, expired_applications.application_id   
 FROM (SELECT *
 FROM applications WHERE status_ IN ('expired_borrowing', 'borrowed')) expired_applications
 INNER JOIN user u
-ON u.user_id = expired_applications.user_id
+ON u.user_id = expired_applications.user_id AND u.school_name = '{school_name}'
 WHERE 1=1"""
             if first_name:
                 query += " AND u.first_name LIKE %s"
-                first_term = '%' + first_name + '%'
+                first_term =  first_name 
                 params.append(first_term)
             if last_name:
                 query += " AND u.last_name LIKE %s"
-                last_term = '%' + last_name + '%'
+                last_term =  last_name 
                 params.append(last_term)
             if days:
-                query += " AND DAY(DATEDIFF(NOW(), expired_applications.expiration_date)) >= %s"
-                day_term = '%' + days + '%'
+                query += " AND DATEDIFF(NOW(), expired_applications.expiration_date) >= %s"
+                day_term = days
                 params.append(day_term)
             cur.execute(query, tuple(params))
             column_names = [i[0] for i in cur.description]
@@ -1420,7 +1443,7 @@ def stats4():
 FROM author a
 LEFT JOIN book_author ba ON a.author_id = ba.author_id
 LEFT JOIN applications app ON ba.ISBN = app.ISBN
-WHERE app._status NOT IN ('borrowed','expired_borrowing','completed')"""
+WHERE app.status_ NOT IN ('borrowed','expired_borrowing','completed')"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]

@@ -999,6 +999,8 @@ INSERT INTO user (username, pwd, first_name, last_name, birth_date, role_name, s
 INSERT INTO user (username, pwd, first_name, last_name, birth_date, role_name, school_name) VALUES ('aias.gerodimos137', '^nm8vXhMP%', 'Αίας', 'Γεροδήμος', '2014-09-12', 'student', '16ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ');
 INSERT INTO user (username, pwd, first_name, last_name, birth_date, role_name, school_name) VALUES ('stauroyla.karolidoy814', 'T+Q1SMbJOn', 'Σταυρούλα', 'Καρολίδου', '2014-12-24', 'student', '16ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ');
 INSERT INTO user (username, pwd, first_name, last_name, birth_date, role_name, school_name) VALUES ('reveka.filippakis465', '3yJeSNs5(4', 'Ρεβέκα', 'Φιλιππάκης', '2015-03-06', 'student', '16ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ');
+
+/*teachers*/
 INSERT INTO user (username, pwd, first_name, last_name, role_name, birth_date, school_name) VALUES ('theodosis.kokkinidoy856', '12Y1y!Fp#&', 'Θεοδόσης', 'Κοκκινίδου', 'teacher', '1981-08-25', '16ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ');
 INSERT INTO user (username, pwd, first_name, last_name, role_name, birth_date, school_name) VALUES ('fokas.intzes883', 'U!4YlPlkpf', 'Φωκάς', 'Ιντζές', 'teacher', '1987-01-24', '16ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ');
 INSERT INTO user (username, pwd, first_name, last_name, role_name, birth_date, school_name) VALUES ('anthi.savvaki973', '&IW7S5c8iR', 'Ανθή', 'Σαββάκη', 'teacher', '1965-12-12', '16ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ');
@@ -1099,3 +1101,27 @@ INSERT INTO user (username, pwd, first_name, last_name, role_name, birth_date, s
 INSERT INTO user (username, pwd, first_name, last_name, role_name, birth_date, school_name) VALUES ('triantafullos.ztoykos545', '%0_k!S5m_7', 'Τριαντάφυλλος', 'Ζτούκος', 'teacher', '1988-03-27', '24ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ');
 INSERT INTO user (username, pwd, first_name, last_name, role_name, birth_date, school_name) VALUES ('chionia.arguropoylos809', '((x0DjX1)9', 'Χιονιά', 'Αργυρόπουλος', 'teacher', '1978-03-19', '38ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ');
 INSERT INTO user (username, pwd, first_name, last_name, role_name, birth_date, school_name) VALUES ('sumeon.thomakoy754', '07DXMd$r&p', 'Συμεών', 'Θωμάκου', 'teacher', '1981-07-24', '16ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ');
+
+/*
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('miltiadis.tziavas737', '^Tc3Yg1Dk*', 'Μιλτιάδης', 'Τζιάβας', 'handler', '16ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ', '1980-11-24');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('nektarios.palaiologos939', 'c$5O+iRn$v', 'Νεκτάριος', 'Παλαιολόγος', 'handler', '38ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ', '1976-12-15');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('vrasidas.georgalas459', '2&9YiWYzGP', 'Βρασίδας', 'Γεωργαλάς', 'handler', '46ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ', '1985-08-20');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('erieta.gkova881', 'tZbj4Y5w_T', 'Εριέτα', 'Γκόβα', 'handler', '56ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ', '1980-01-06');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('sevasti.kotrotsoy476', 'yn4nYBae_O', 'Σεβαστή', 'Κοτρώτσου', 'handler', '57ο ΓΕΝ. ΛΥΚΕΙΟ ΑΘΗΝΩΝ ', '1983-02-20');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('domna.chatzimichail57', '$_X4YHyB+q', 'Δόμνα', 'Χατζημιχαήλ', 'handler', '18ο Γ/ΣΙΟ ΑΘΗΝΑΣ', '1982-06-03');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('giannis.sitopoylos934', ')Q4Ds2pwB+', 'Γιάννης', 'Σιτόπουλος', 'handler', '21ο Γ/ΣΙΟ ΑΘΗΝΑΣ', '1971-04-16');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('meletia.ufanti945', '(64PzEAg_3', 'Μελέτια', 'Υφαντή', 'handler', '22ο Γ/ΣΙΟ ΑΘΗΝΑΣ', '1978-04-08');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('mayra.sofra367', '+)hNdQ0M7k', 'Μαύρα', 'Σόφρα', 'handler', '40ο Γ/ΣΙΟ ΑΘΗΝΑΣ', '1972-11-22');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('loykia.griva514', '(P4rR$*q+m', 'Λουκία', 'Γρίβα', 'handler', '49ο Γ/ΣΙΟ ΑΘΗΝΑΣ', '1972-03-18');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('ierotheos.tsagkrasoylis422', '*4eP_zKj5Z', 'Ιερόθεος', 'Τσαγκρασούλης', 'handler', '59ο Γ/ΣΙΟ ΑΘΗΝΑΣ', '1971-07-13');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('afroditi.sokolaki255', '6%!7Rsbzau', 'Αφροδίτη', 'Σοκολάκη', 'handler', '61ο Γ/ΣΙΟ ΑΘΗΝΑΣ', '1980-10-17');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('venetia.pantoy785', '*Dx44HZteh', 'Βενετία', 'Πάντου', 'handler', '65ο Γ/ΣΙΟ ΑΘΗΝΑΣ', '1986-11-04');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('athanasios.grammatikopoylos629', ')xVnV10zl5', 'Αθανάσιος', 'Γραμματικόπουλος', 'handler', '68ο Γ/ΣΙΟ ΑΘΗΝΑΣ', '1977-11-14');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('aliki.avramidoy662', 'R_4u)H5TEr', 'Αλίκη', 'Αβραμίδου', 'handler', '1ο Γ/ΣΙΟ ΓΑΛΑΤΣΙΟΥ', '1974-10-16');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('matthaios.gkagkas482', 'M#o2pTv!ub', 'Ματθαίος', 'Γκάγκας', 'handler', '2ο Γ/ΣΙΟ ΓΑΛΑΤΣΙΟΥ', '1986-10-29');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('malamati.nikolopoyloy451', 'T@n7I0WvXC', 'Μαλαμάτη', 'Νικολοπούλου', 'handler', '3ο Γ/ΣΙΟ ΓΑΛΑΤΣΙΟΥ', '1972-08-21');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('theoklitos.desyllas655', 'gX7YMAg6$T', 'Θεόκλητος', 'Δεσύλλας', 'handler', '4ο Γ/ΣΙΟ ΓΑΛΑΤΣΙΟΥ', '1978-08-15');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('fotios.chitos280', 'Bi_m6UsL8k', 'Φώτιος', 'Χητός', 'handler', '5ο Γ/ΣΙΟ ΓΑΛΑΤΣΙΟΥ', '1985-06-26');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('leandros.nanoyris895', '@6Qh%EemOH', 'Λέανδρος', 'Νανούρης', 'handler', '6ο Γ/ΣΙΟ ΓΑΛΑΤΣΙΟΥ', '1988-11-24');
+INSERT INTO user (username, pwd, first_name, last_name, role_name, school_name, birth_date) VALUES ('alkiviadis.luberis342', ')$(dkOHo8g', 'Αλκιβιάδης', 'Λυμπέρης', 'handler', 'Γ/ΣΙΟ Ν. ΧΑΛΚΗΔΟΝΑΣ', '1985-05-02');
+*/

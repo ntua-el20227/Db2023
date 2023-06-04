@@ -26,24 +26,29 @@ CREATE TABLE IF NOT EXISTS school
 
 CREATE TABLE IF NOT EXISTS user
 (
-    user_id             BIGINT AUTO_INCREMENT PRIMARY KEY                     NOT NULL,
-    username            VARCHAR(100) UNIQUE                                   NOT NULL,
-    pwd                 VARCHAR(100)                                          NOT NULL
+    user_id BIGINT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    pwd VARCHAR(100) NOT NULL
         CHECK (CHAR_LENGTH(pwd) > 3),
-    first_name          VARCHAR(100)                                          NOT NULL,
-    last_name           VARCHAR(100)                                          NOT NULL,
-    birth_date          DATE                                                  NOT NULL,
-    status_usr          ENUM ('active','pending','removed') DEFAULT 'pending' NOT NULL,
-    active_borrows      TINYINT(10)                         DEFAULT 0         NOT NULL
-        CHECK (active_borrows < 3 AND active_borrows >= 0),
-    role_name           ENUM ('student', 'teacher', 'handler')                NOT NULL,
-    school_name         VARCHAR(100)                                          NOT NULL,
-    active_reservations TINYINT(10)                         DEFAULT 0         NOT NULL
-        CHECK (active_reservations < 3 AND active_reservations >= 0),
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    birth_date DATE NOT NULL,
+    status_usr ENUM ('active','pending','removed') DEFAULT 'pending' NOT NULL,
+    active_borrows TINYINT(10) DEFAULT 0 NOT NULL
+        CHECK ((active_borrows < 3 AND active_borrows >= 0 AND role_name = 'student')
+        OR(active_borrows < 2 AND active_borrows >=0 AND role_name = 'teacher')
+        OR (active_borrows =0 AND role_name = 'handler')),
+    role_name ENUM ('student', 'teacher', 'handler') NOT NULL,
+    school_name VARCHAR(100) NOT NULL,
+    active_reservations TINYINT(10) DEFAULT 0 NOT NULL
+        CHECK ((active_reservations < 3 AND active_reservations >= 0 AND role_name = 'student')
+        OR(active_reservations < 2 AND active_reservations >=0 AND role_name = 'teacher')
+        OR (active_reservations =0 AND role_name = 'handler')),
     CONSTRAINT FK_school_name FOREIGN KEY (school_name)
         REFERENCES school (school_name)
         ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB;
+
 
 
 CREATE TABLE IF NOT EXISTS book

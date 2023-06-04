@@ -202,7 +202,7 @@ CREATE TRIGGER trigger_check_handler_school
 BEFORE INSERT ON user
 FOR EACH ROW
 BEGIN
-    IF (SELECT COUNT(*) FROM user WHERE school_name = NEW.school_name AND NEW.role_name = 'handler') > 0  THEN
+    IF (SELECT COUNT(*) FROM user WHERE school_name = NEW.school_name AND role_name = 'handler') > 0  THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one handler can be assigned to this school';
     END IF;
 END;

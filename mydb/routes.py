@@ -1150,7 +1150,13 @@ def book_title():
         school_id = mysession["school"]
         title = request.form['booktitle']
         if title:
-            query = f""" """
+            query = f"""SELECT b.*,
+GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ',') AS author_names
+FROM (SELECT stores.ISBN FROM stores WHERE stores.school_id = '{school_id}') q
+INNER JOIN (SELECT * FROM book WHERE title = '{title}') b ON b.ISBN = q.ISBN
+INNER JOIN book_author ba ON q.ISBN = ba.ISBN
+INNER JOIN author a ON a.author_id = ba.author_id
+GROUP BY b.title"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -1189,48 +1195,74 @@ def book_filter():
         author = request.form['bookauthor']
         number = request.form['copies']
         params = []
-        query = f""" """
+
+        query = f"""
+        SELECT b.*, q.available_copies,
+        GROUP_CONCAT(DISTINCT a.author_name ORDER BY a.author_name SEPARATOR ',') AS author_names, 
+        GROUP_CONCAT(DISTINCT c.category_name ORDER BY c.category_name SEPARATOR ',') AS book_categories
+        FROM (SELECT stores.ISBN, stores.available_copies FROM stores WHERE stores.school_id = '{school_id}') q 
+        INNER JOIN book b ON b.ISBN = q.ISBN
+        INNER JOIN book_category bc ON q.ISBN = bc.ISBN
+        INNER JOIN category c ON bc.category_id = c.category_id
+        INNER JOIN book_author ba ON q.ISBN = ba.ISBN
+        INNER JOIN author a ON a.author_id = ba.author_id
+        WHERE 1=1
+        """
+
         if author:
-                query += " AND ? LIKE %s"
-                author_term = '%' + author + '%'
-                params.append(author_term)
+            query += "AND a.author_name LIKE %s "
+            author_term = '%' + author + '%'
+            params.append(author_term)
+
         if category:
-                query += " AND ? LIKE %s"
-                category_term = '%' + category + '%'
-                params.append(category_term)
+            query += "AND c.category_name LIKE %s "
+            category_term = '%' + category + '%'
+            params.append(category_term)
+
         if number:
-                query += " AND ? LIKE %s"
-                number_term = '%' + number + '%'
-                params.append(number_term)
+            query += "AND q.available_copies LIKE %s "
+            params.append(number)
+
+        query += "GROUP BY b.ISBN"
 
         cur.execute(query, tuple(params))
+
         column_names = [i[0] for i in cur.description]
         books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
-        query = f"""SELECT DISTINCT a.author_name 
-                    FROM book_author ba 
-                    INNER JOIN (SELECT ISBN FROM stores WHERE school_id = {school_id}) s
-                    ON ba.ISBN = s.ISBN
-                    INNER JOIN author a
-                    ON a.author_id = ba.author_id
-                    ORDER BY a.author_name"""
-        cur.execute(query)
+
+        query = """
+        SELECT DISTINCT a.author_name
+        FROM book_author AS ba
+        INNER JOIN stores AS s ON ba.ISBN = s.ISBN
+        INNER JOIN author AS a ON a.author_id = ba.author_id
+        WHERE s.school_id = %s
+        ORDER BY a.author_name
+        """
+
+        cur.execute(query, (school_id,))
+
         column_names = [i[0] for i in cur.description]
         authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
-        query = f"""SELECT DISTINCT c.category_name 
-                    FROM book_category bc 
-                    INNER JOIN (SELECT ISBN FROM stores WHERE school_id = {school_id}) s
-                    ON bc.ISBN = s.ISBN
-                    INNER JOIN category c
-                    ON c.category_id = bc.category_id
-                    ORDER BY c.category_name"""
-        cur.execute(query)
+
+        query = """
+        SELECT DISTINCT c.category_name
+        FROM book_category AS bc
+        INNER JOIN stores AS s ON bc.ISBN = s.ISBN
+        INNER JOIN category AS c ON c.category_id = bc.category_id
+        WHERE s.school_id = %s
+        ORDER BY c.category_name
+        """
+
+        cur.execute(query, (school_id,))
+
         column_names = [i[0] for i in cur.description]
         categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+
         cur.close()
+
         return render_template('books.html', user=mysession['user'], title='Books', books=books, authors=authors, categories=categories)
+
     return redirect(url_for('index'))
-
-
 
 @app.route('/schoolpage/userhome/borrows/filter', methods=['POST'])
 def borrow_filter():
@@ -1241,10 +1273,26 @@ def borrow_filter():
             first_name = request.form["first_name"]
             last_name = request.form["last_name"]
             days = request.form["days"]
-            
-            query = f""" """
-
-            cur.execute(query)
+            params = []
+            query = f""" SELECT u.username, u.first_name, u.last_name, u.role_name, expired_applications.ISBN
+FROM (SELECT *
+FROM applications WHERE status_ IN ('expired_borrowing', 'borrowed')) expired_applications
+INNER JOIN user u
+ON u.user_id = expired_applications.user_id
+WHERE 1=1"""
+            if first_name:
+                query += " AND u.first_name LIKE %s"
+                first_term = '%' + first_name + '%'
+                params.append(first_term)
+            if last_name:
+                query += " AND u.last_name LIKE %s"
+                last_term = '%' + last_name + '%'
+                params.append(last_term)
+            if days:
+                query += " AND DAY(DATEDIFF(NOW(), expired_applications.expiration_date)) >= %s"
+                day_term = '%' + days + '%'
+                params.append(day_term)
+            cur.execute(query, tuple(params))
             column_names = [i[0] for i in cur.description]
             borrows = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
             cur.close()
@@ -1364,7 +1412,11 @@ def stats4():
     if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
-            query = """"""
+            query = """SELECT DISTINCT a.author_name
+FROM author a
+LEFT JOIN book_author ba ON a.author_id = ba.author_id
+LEFT JOIN applications app ON ba.ISBN = app.ISBN
+WHERE app._status NOT IN ('borrowed','expired_borrowing','completed')"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -1378,7 +1430,20 @@ def stats5():
     if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
-            query = """"""
+            query = """SELECT s.school_name,
+COUNT(*) AS books_borrowed,
+GROUP_CONCAT(DISTINCT CONCAT(u_handlers.first_name, ' ', u_handlers.last_name) SEPARATOR ', ') AS handlers
+FROM school s
+INNER JOIN
+user u_handlers ON s.school_name = u_handlers.school_name AND u_handlers.role_name = 'handler'
+INNER JOIN
+user u_students ON s.school_name = u_students.school_name AND u_students.role_name IN ('student', 'teacher')
+INNER JOIN
+applications a ON u_students.user_id = a.user_id
+WHERE a.status_ IN ('borrowed', 'completed', 'expired_borrowing')
+AND a.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+GROUP BY s.school_name
+HAVING COUNT(*) > 20"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             handlers = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
@@ -1388,35 +1453,25 @@ def stats5():
 
 
 @app.route('/adminhome/stats/6')
-def stats6():
-    if 'status' in mysession:
-        if mysession['status'] == "admin":
-            cur = db.connection.cursor()
-            query = """SELECT category_name from category"""
-            cur.execute(query)
-            column_names = [i[0] for i in cur.description]
-            categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
-            return render_template("adminstat6.html", title="Stat6", books=[], categories=categories)
-    return redirect(url_for('index'))    
-
-
-
-@app.route('/adminhome/stats/6/filter')
 def stats6_applied():
     if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
-            query = """?"""
+            query = """SELECT c1.category_name, c2.category_name, COUNT(app.ISBN) AS pair_count
+FROM book_category bc1
+JOIN book_category bc2 ON bc1.ISBN = bc2.ISBN AND bc1.category_id < bc2.category_id
+JOIN category c1 ON bc1.category_id = c1.category_id
+JOIN category c2 ON bc2.category_id = c2.category_id
+JOIN applications app ON bc1.ISBN = app.ISBN
+WHERE app.status_ IN ('borrowed','expired_borrowing','completed')
+GROUP BY c1.category_name, c2.category_name
+ORDER BY pair_count DESC
+LIMIT 3"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
-            books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
-            query = """SELECT category_name from category"""
-            cur.execute(query)
-            column_names = [i[0] for i in cur.description]
-            categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
-            return render_template("adminstat6.html", title="Stat6", books=books, categories=categories)
+            category_pairs = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            return render_template("adminstat6.html", title="Stat6", category_pairs=category_pairs)
     return redirect(url_for('index'))    
-
 
 
 
@@ -1425,11 +1480,32 @@ def stats7():
     if 'status' in mysession:
         if mysession['status'] == "admin":
             cur = db.connection.cursor()
-            query = """?"""
+            query="""SELECT a.author_name, COUNT(*) AS book_count
+FROM book_author ba
+INNER JOIN author a ON ba.author_id = a.author_id
+GROUP BY a.author_id
+ORDER BY COUNT(*) DESC
+LIMIT 1"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            topauthor = dict(zip(column_names, cur.fetchone())) 
+            query = """SELECT a.author_name, COUNT(*) AS book_count
+FROM book_author ba
+INNER JOIN author a on ba.author_id = a.author_id
+GROUP BY author_name
+HAVING book_count <= (
+SELECT COUNT(*)-5
+FROM book_author ba
+INNER JOIN author a ON ba.author_id = a.author_id
+GROUP BY a.author_id
+ORDER BY COUNT(*) DESC
+LIMIT 1
+)
+ORDER BY book_count"""
             cur.execute(query)
             column_names = [i[0] for i in cur.description]
             authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
-            return render_template("adminstat7.html", title="Stat7", authors=authors)
+            return render_template("adminstat7.html", title="Stat7", authors=authors, topauthor=topauthor)
     return redirect(url_for('index'))    
 
 

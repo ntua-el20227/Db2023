@@ -27,11 +27,7 @@
                                 <td> {{borrow.ISBN}} </td>
                                 <td>{{borrow.title}}</td>
                                 <td>{{borrow.start_date}} </td>
-                                {% if borrow.status == "borrowed" %}
                                 <td>{{borrow.expiration_date}}</td>
-                                {% else %}
-                                <td>{{borrow.expiration_date}}</td> (⚠️ Expired!)
-                                {% endif %}
                             </tr>
                         {% endfor %}
                         </tbody>

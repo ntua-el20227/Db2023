@@ -14,19 +14,18 @@
                 <table class="table table-striped table-sm table-borderless">
                     <thead>
                         <tr>
-                            <th>Handler First Name</th>
-                            <th>Handler Last Name</th>
+                            <th>Handler Full Name</th>
+                            <th>Handler School</th>
                             <th>Borrows</th>
                         </tr>
                     </thead>
                     <tbody>
                     {% for handler in handlers %}
                         <tr>
-                            <td> {{handler.first_name}} </td>
-                            <td> {{handler.last_name}} </td>
-                            <td> {{handler.borrows}} </td>
+                            <td> {{handler.handlers}} </td>
+                            <td> {{handler.school_name}} </td>
+                            <td> {{handler.books_borrowed}} </td>
                         </tr>
-                        
                     {% endfor %}
                     </tbody>
                 </table>

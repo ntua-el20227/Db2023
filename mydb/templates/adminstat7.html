@@ -4,6 +4,8 @@
 {% include "adminpwdmodal.html" %}
 {% include "adminnavbar.html" %}
 
+
+
 <div class="row">
     <div class="col-md-10">
         <div class="jumbotron p-3">
@@ -21,14 +23,14 @@
                     <tbody>
                         <tr>
                             <td> {{topauthor.author_name}} </td>
-                            <td>{{topauthor.score}} </td>
+                            <td>{{topauthor.book_count}} </td>
                             <td> (top Author) </td>
                         </tr>
                         
                         {% for author in authors %}
                         <tr>
                             <td> {{author.author_name}} </td>
-                            <td>{{author.score}} </td>
+                            <td>{{author.book_count}} </td>
                         </tr>
                         
                     {% endfor %}

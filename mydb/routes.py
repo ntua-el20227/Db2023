@@ -1194,7 +1194,8 @@ def book_filter():
         school_id = mysession["school"]
         category = request.form['bookcategory']
         author = request.form['bookauthor']
-        number = request.form['copies']
+        if mysession["user"]["role"] == "handler":
+            number = request.form['copies']
         params = []
 
         query = f"""
@@ -1264,6 +1265,8 @@ def book_filter():
         return render_template('books.html', user=mysession['user'], title='Books', books=books, authors=authors, categories=categories)
 
     return redirect(url_for('index'))
+
+
 
 @app.route('/schoolpage/userhome/borrows/filter', methods=['POST'])
 def borrow_filter():
@@ -1508,7 +1511,6 @@ ORDER BY book_count"""
             authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
             return render_template("adminstat7.html", title="Stat7", authors=authors, topauthor=topauthor)
     return redirect(url_for('index'))    
-
 
 
 

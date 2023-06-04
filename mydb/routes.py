@@ -789,7 +789,7 @@ def reservations():
                      FROM applications a
                      INNER JOIN user u ON a.user_id = u.user_id
                      INNER JOIN book b ON a.ISBN = b.ISBN
-                     WHERE a.status_ = 'applied' AND u.user_id = {user_id} """
+                     WHERE a.status_ = 'applied' OR a.status_ = 'queued' AND u.user_id = {user_id} """
         cur.execute(query)
         column_names = [i[0] for i in cur.description]
         reservations = [dict(zip(column_names, entry)) for entry in cur.fetchall()]

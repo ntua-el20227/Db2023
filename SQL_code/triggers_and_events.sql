@@ -177,8 +177,7 @@ BEGIN
     IF (SELECT COUNT(*)
         FROM applications
         WHERE status_ = 'expired_borrowing'
-          AND NEW.user_id = user_id
-          AND NEW.ISBN = ISBN) > 0 THEN
+          AND NEW.user_id = user_id) > 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'You cannot apply for borrow when u have an expired borrowing';
     END IF;
 END;

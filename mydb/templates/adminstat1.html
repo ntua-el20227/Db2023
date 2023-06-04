@@ -12,10 +12,12 @@
             <div class="card" id="card-container">
             <div class="card-body" id="card">    
             <h4>Filter Table: </h4>
-            <h6> Choose a Month: <input type="month"> </h6>
-             <div class="form-group">
-                    <button class="btn btn-primary" type="submit">Apply</button>
+            <form action="/adminhome/stats/1/filter" method="POST">
+                <h6> Choose a Month: <input type="month" name="month"> </h6>
+            <div class="form-group">
+                <button class="btn btn-primary" type="submit">Apply</button>
              </div>
+            </form>
             </div>
             </div>
             <br>  <br>         
@@ -32,7 +34,7 @@
                         {% for school in schools %}
                             <tr>
                                 <td> {{school.school_name}} </td>
-                                <td> {{school.borrows}} </td>
+                                <td> {{school.total_borrows}} </td>
                             </tr>
                             
                         {% endfor %}

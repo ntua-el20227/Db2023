@@ -32,6 +32,8 @@
                 <div class="card" id="card-container">
                     <div class="card-body" id="card">    
                         <h4><label for="booktitle">Search for a Title:</label></h4>
+                        
+                        <form action="/schoolpage/userhome/books/apply_stats/title" method="POST">
                         <input list="titles" autocomplete="off" id="booktitle" name="booktitle">
                         
                         <datalist id="titles">
@@ -46,6 +48,7 @@
                         <br>
                         <button class="btn btn-primary" type="submit">Search</button>
                     </div>
+                    </form>
                 </div>
             </div>  
             </div>
@@ -58,7 +61,8 @@
                 <div class="card-body" id="card">   
                     <h4>Filter Table: </h4>
                 <h6><label for="bookcategory">Category Filter:</label></h6>
-                    <input list="categories" autocomplete="off" id="bookcategory" name="bookcategory">
+                <form action="/schoolpage/userhome/books/apply_stats/filter" method="POST">
+                <input list="categories" autocomplete="off" id="bookcategory" name="bookcategory">
                     
                     <datalist id="categories">
                         {% for category in categories %}
@@ -76,11 +80,12 @@
                     </datalist>
                     <br> <br>
                 {% if user['role'] == "handler" %}
-                    <h6>Books with available copies = <input type="number"> </h6>
+                    <h6>Books with available copies = <input type="number" name="copies"> </h6>
                     {% endif %}   
                 <div class="form-group">
                         <button class="btn btn-primary" type="submit">Apply</button>
                 </div>
+                </form>
                 </div>
                 </div>
                 <br>   <br> 

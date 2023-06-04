@@ -12,63 +12,72 @@
             <div class="card" id="card-container">
             <div class="card-body" id="card">    
             <h4>Filter Table: </h4>
+            <form action="/adminhome/stats/2/filter" method="POST">
             <h6><label for="bookcategory">Category Filter:</label></h6>
-                    <input list="categories" autocomplete="off" id="bookcategory" name="bookcategory">
+
+            <input list="categories" autocomplete="off" id="bookcategory" name="bookcategory">
                     
                     <datalist id="categories">
                         {% for category in categories %}
-                        <option value="{{category}}">
+                        <option value="{{category.category_name}}">
                         {% endfor %}
                     </datalist>
-
-
-            <div class="card" id="card-container">
-                <div class="card-body" id="card">
-                    <table class="table table-striped table-sm table-borderless">
-                        <thead>
-                            <tr>
-                                <th>Authors</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for author in authors %}
-                            <tr>
-                                <td> {{author.author_name}} </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            
-            <div class="card" id="card-container">
-                <div class="card-body" id="card">
-                    <table class="table table-striped table-sm table-borderless">
-                        <thead>
-                            <tr>
-                                <th>Teacher First Name</th>
-                                <th>Teacher Last Name</th>
-                                <th>School</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for teacher in teachers %}
-                            <tr>
-                                <td> {{author.first_name}} </td>
-                                <td> {{teacher.last_name}} </td>
-                                <td> {{teacher.school_name}} </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-
-
+                    <br><br>
+                    <div class="form-group">
+                        <button class="btn btn-primary" type="submit">Apply</button>
         </div>
+            </form>
     </div>
+            </div>
+
+<br> <br>
+
+<div class="card" id="card-container">
+    <div class="card-body" id="card">
+        <table class="table table-striped table-sm table-borderless">
+            <thead>
+                <tr>
+                    <th>Authors</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for author in authors %}
+                <tr>
+                    <td> {{author.author_name}} </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<br> <br>
+
+<div class="card" id="card-container">
+    <div class="card-body" id="card">
+        <table class="table table-striped table-sm table-borderless">
+            <thead>
+                <tr>
+                    <th>Teacher First Name</th>
+                    <th>Teacher Last Name</th>
+                    <th>School</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for teacher in teachers %}
+                <tr>
+                    <td> {{teacher.first_name}} </td>
+                    <td> {{teacher.last_name}} </td>
+                    <td> {{teacher.school_name}} </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</div>
+</div>
 </div>
 
 

@@ -12,12 +12,14 @@
             <div class="card" id="card-container">
             <div class="card-body" id="card">    
             <h4>Filter Table: </h4>
-            <h6> User First Name: <input type="text"> </h6>
-            <h6> User Last Name: <input type="text"> </h6>
-            <h6> Show only borrows that were expired for at least  <input type="number"> Day(s) </h6>
+            <form action="/schoolpage/userhome/borrows/filter" method="POST"></form>
+            <h6> User First Name: <input type="text" name="first_name"> </h6>
+            <h6> User Last Name: <input type="text" name="last_name"> </h6>
+            <h6> Show only borrows that were expired for at least  <input type="number" name="days"> Day(s) </h6>
              <div class="form-group">
                     <button class="btn btn-primary" type="submit">Apply</button>
              </div>
+            </form>
             </div>
             </div>
             <br>  <br>         

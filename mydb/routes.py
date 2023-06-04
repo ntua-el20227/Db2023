@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_mysqldb import MySQL
 from mydb import app, db
+from mydb import utils
+from datetime import datetime
 
 mysession = {}
 
@@ -44,6 +46,7 @@ def adminlogin():
     return redirect(url_for('index'))
 
 
+
 @app.route('/adminhome')  # checked
 def adminhome():
     if 'status' in mysession:
@@ -51,6 +54,25 @@ def adminhome():
             return render_template('adminhome.html', title='Home Page')
     return redirect(url_for('index'))
 
+
+
+@app.route("/adminhome/backup")
+def adminbackup():   
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            utils.backup()
+            flash("Database backup created", "success")
+            return redirect(url_for('adminhome'))
+    return redirect(url_for('index'))
+
+@app.route("/adminhome/restore")
+def adminrestore():   
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            utils.restore()
+            flash("Databased restored", "success")
+            return redirect(url_for('adminhome'))
+    return redirect(url_for('index'))
 
 @app.route('/adminhome/pwd', methods=['POST'])  # checked
 def adminpwd():
@@ -220,6 +242,7 @@ def handler_reject(handler_id):
             flash("Handler discarded", "success")
             return redirect('/adminhome/handlers')
     return redirect(url_for('index'))
+
 
 
 @app.route('/handlerapplication', methods=['POST'])  # birthday missing, rest is checked
@@ -1117,5 +1140,298 @@ def school_applied_stats():
             return render_template('handlerstats.html', categories=categories, records=records)
         return redirect(url_for('userhome'))
     return redirect(url_for('index'))
-    
-    
+
+
+
+@app.route('/schoolpage/userhome/books/apply_stats/title', methods=['POST'])
+def book_title():
+    if 'user' in mysession and 'school' in mysession:
+        cur = db.connection.cursor()
+        school_id = mysession["school"]
+        title = request.form['booktitle']
+        if title:
+            query = f""" """
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            query = f"""SELECT DISTINCT a.author_name 
+                        FROM book_author ba 
+                        INNER JOIN (SELECT ISBN FROM stores WHERE school_id = {school_id}) s
+                        ON ba.ISBN = s.ISBN
+                        INNER JOIN author a
+                        ON a.author_id = ba.author_id
+                        ORDER BY a.author_name"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            query = f"""SELECT DISTINCT c.category_name 
+                        FROM book_category bc 
+                        INNER JOIN (SELECT ISBN FROM stores WHERE school_id = {school_id}) s
+                        ON bc.ISBN = s.ISBN
+                        INNER JOIN category c
+                        ON c.category_id = bc.category_id
+                        ORDER BY c.category_name"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            cur.close()
+            return render_template('books.html', user=mysession['user'], title='Books', books=books, authors=authors, categories=categories)
+    return redirect(url_for('index'))
+
+
+
+@app.route('/schoolpage/userhome/books/apply_stats/filter', methods=['POST'])
+def book_filter():
+    if 'user' in mysession and 'school' in mysession:
+        cur = db.connection.cursor()
+        school_id = mysession["school"]
+        category = request.form['bookcategory']
+        author = request.form['bookauthor']
+        number = request.form['copies']
+        params = []
+        query = f""" """
+        if author:
+                query += " AND ? LIKE %s"
+                author_term = '%' + author + '%'
+                params.append(author_term)
+        if category:
+                query += " AND ? LIKE %s"
+                category_term = '%' + category + '%'
+                params.append(category_term)
+        if number:
+                query += " AND ? LIKE %s"
+                number_term = '%' + number + '%'
+                params.append(number_term)
+
+        cur.execute(query, tuple(params))
+        column_names = [i[0] for i in cur.description]
+        books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+        query = f"""SELECT DISTINCT a.author_name 
+                    FROM book_author ba 
+                    INNER JOIN (SELECT ISBN FROM stores WHERE school_id = {school_id}) s
+                    ON ba.ISBN = s.ISBN
+                    INNER JOIN author a
+                    ON a.author_id = ba.author_id
+                    ORDER BY a.author_name"""
+        cur.execute(query)
+        column_names = [i[0] for i in cur.description]
+        authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+        query = f"""SELECT DISTINCT c.category_name 
+                    FROM book_category bc 
+                    INNER JOIN (SELECT ISBN FROM stores WHERE school_id = {school_id}) s
+                    ON bc.ISBN = s.ISBN
+                    INNER JOIN category c
+                    ON c.category_id = bc.category_id
+                    ORDER BY c.category_name"""
+        cur.execute(query)
+        column_names = [i[0] for i in cur.description]
+        categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+        cur.close()
+        return render_template('books.html', user=mysession['user'], title='Books', books=books, authors=authors, categories=categories)
+    return redirect(url_for('index'))
+
+
+
+@app.route('/schoolpage/userhome/borrows/filter', methods=['POST'])
+def borrow_filter():
+    if 'user' in mysession and 'school' in mysession:
+        if mysession["user"]['role'] == "handler":
+            cur = db.connection.cursor()
+            school_name = mysession["user"]['school_name']
+            first_name = request.form["first_name"]
+            last_name = request.form["last_name"]
+            days = request.form["days"]
+            
+            query = f""" """
+
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            borrows = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            cur.close()
+            return render_template('handlerborrows.html', title='Borrows', borrows=borrows)
+        return redirect(url_for('userhome'))
+    return redirect(url_for('index'))
+
+
+
+@app.route('/adminhome/stats/1')
+def stats1():
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            return render_template("adminstat1.html", title="Stat1", schools=[])
+    return redirect(url_for('index'))
+
+
+
+@app.route('/adminhome/stats/1/filter', methods=["POST"])
+def stats1_applied():
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            fullmonth = request.form["month"]
+            dt=datetime.strptime(fullmonth, "%Y-%m")
+            cur = db.connection.cursor()
+            if fullmonth:
+                query = f"""SELECT school.school_name, COUNT(a.application_id) AS total_borrows FROM school LEFT JOIN user ON school.school_name = user.school_name 
+                LEFT JOIN applications a ON user.user_id = a.user_id AND a.status_!='applied' AND MONTH(a.start_date) = '{dt.month}' AND YEAR(a.start_date) = "{dt.year}" GROUP BY school.school_name"""
+                cur.execute(query)
+                column_names = [i[0] for i in cur.description]
+                schools = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+                return render_template("adminstat1.html", title="Stat1", schools=schools)
+    return redirect(url_for('index'))
+
+
+
+@app.route('/adminhome/stats/2')
+def stats2():
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            cur = db.connection.cursor()
+            query = """SELECT category_name from category"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            return render_template("adminstat2.html", title="Stat2", categories=categories, teachers=[], authors=[])
+    return redirect(url_for('index'))
+
+
+
+
+@app.route('/adminhome/stats/2/filter', methods=["POST"])
+def stats2_applied():
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            cur = db.connection.cursor()
+            category=request.form["bookcategory"]
+            query = f"""SELECT DISTINCT author.author_name
+FROM author JOIN book_author ON author.author_id = book_author.author_id JOIN book_category ON book_author.ISBN = book_category.ISBN JOIN category ON book_category.category_id = category.category_id WHERE category.category_name = '{category}'"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            query= f"""SELECT DISTINCT user.first_name, user.last_name, user.school_name
+FROM user
+INNER JOIN applications ON user.user_id = applications.user_id
+INNER JOIN book ON applications.ISBN = book.ISBN
+INNER JOIN book_category ON book.ISBN = book_category.ISBN
+INNER JOIN category ON book_category.category_id = category.category_id
+WHERE category.category_name = '{category}'
+AND applications.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+AND user.role_name = 'teacher'"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            teachers = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            query = """SELECT category_name from category"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            return render_template("adminstat2.html", title="Stat2", categories=categories, authors=authors, teachers=teachers)
+    return redirect(url_for('index'))
+
+
+
+@app.route('/adminhome/stats/3')
+def stats3():
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            cur = db.connection.cursor()
+            query="""SELECT u.birth_date, u.first_name, u.last_name, num_books
+FROM user u
+INNER JOIN (SELECT a.user_id, COUNT(*) AS num_books
+FROM applications a
+INNER JOIN user u ON u.user_id = a.user_id
+WHERE u.role_name = 'teacher'
+AND TIMESTAMPDIFF(YEAR, u.birth_date, CURRENT_DATE()) < 40
+AND a.status_ IN ('borrowed', 'completed','expired_borrowing')
+GROUP BY a.user_id
+HAVING COUNT(*) = (SELECT COUNT(*) AS max_books
+FROM applications a
+INNER JOIN user u ON u.user_id = a.user_id
+WHERE u.role_name = 'teacher'
+AND TIMESTAMPDIFF(YEAR, u.birth_date, CURRENT_DATE()) < 40
+AND a.status_ IN ('borrowed', 'completed', 'expired_borrowing')
+GROUP BY a.user_id
+ORDER BY max_books DESC
+LIMIT 1)) counts_the_most ON u.user_id = counts_the_most.user_id"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            teachers = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            return render_template("adminstat3.html", title="Stat3", teachers=teachers)
+    return redirect(url_for('index'))    
+
+
+
+@app.route('/adminhome/stats/4')
+def stats4():
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            cur = db.connection.cursor()
+            query = """"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            return render_template("adminstat4.html", title="Stat4", authors=authors)
+    return redirect(url_for('index'))    
+
+
+
+@app.route('/adminhome/stats/5')
+def stats5():
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            cur = db.connection.cursor()
+            query = """"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            handlers = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            return render_template("adminstat5.html", title="Stat5", handlers=handlers)
+    return redirect(url_for('index'))    
+
+
+
+@app.route('/adminhome/stats/6')
+def stats6():
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            cur = db.connection.cursor()
+            query = """SELECT category_name from category"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            return render_template("adminstat6.html", title="Stat6", books=[], categories=categories)
+    return redirect(url_for('index'))    
+
+
+
+@app.route('/adminhome/stats/6/filter')
+def stats6_applied():
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            cur = db.connection.cursor()
+            query = """?"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            books = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            query = """SELECT category_name from category"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            categories = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            return render_template("adminstat6.html", title="Stat6", books=books, categories=categories)
+    return redirect(url_for('index'))    
+
+
+
+
+@app.route('/adminhome/stats/7')
+def stats7():
+    if 'status' in mysession:
+        if mysession['status'] == "admin":
+            cur = db.connection.cursor()
+            query = """?"""
+            cur.execute(query)
+            column_names = [i[0] for i in cur.description]
+            authors = [dict(zip(column_names, entry)) for entry in cur.fetchall()]
+            return render_template("adminstat7.html", title="Stat7", authors=authors)
+    return redirect(url_for('index'))    
+
+
+
+

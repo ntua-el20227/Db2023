@@ -125,17 +125,6 @@ BEGIN
 END;
 
 
-/*Automatically changes the status of the applications to 'expired_borrowing' that expired by checking their expiration date each day*/
-
-
-
-/* checks if the orders is right on the application table applied->borrowed
-   borrowed->completed
-   borrowed->expired_borrowing
-   expired_borrowing->completed
-*/
-
-/*yet to see what happens if you brutally delete a borrowed book*/
 CREATE TRIGGER trigger_update_active_reservations_on_delete
     AFTER DELETE
     ON applications
@@ -155,6 +144,15 @@ BEGIN
 END;
 
 
+CREATE EVENT check_not_returned_books
+    ON SCHEDULE
+        EVERY 30 SECOND
+            STARTS NOW()
+    DO
+    UPDATE applications
+    SET status_ = 'expired_borrowing'
+    WHERE expiration_date < NOW()
+      AND status_ = 'borrowed';
 
 CREATE EVENT event_check_book_availability
     ON SCHEDULE
@@ -185,15 +183,6 @@ BEGIN
     END IF;
 END;
 
-CREATE TRIGGER handler_cant_borrow
-    BEFORE INSERT
-    ON applications
-    FOR EACH ROW
-BEGIN
-    IF (SELECT u.role_name FROM user u WHERE NEW.user_id = u.user_id) = 'handler' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Handlers cannot borrow books!';
-    END IF;
-END;
 
 
 CREATE TRIGGER duplicate_apply_borrow
@@ -210,13 +199,11 @@ BEGIN
     END IF;
 END;
 
-CREATE TRIGGER enforce_one_reservation_for_teacher
-    BEFORE INSERT
-    ON applications
-    FOR EACH ROW
+CREATE TRIGGER trigger_check_handler_school
+BEFORE INSERT ON user
+FOR EACH ROW
 BEGIN
-    IF (SELECT u.role_name FROM user u WHERE u.user_id = NEW.user_id) = 'teacher' AND
-       (SELECT u.active_reservations FROM user u WHERE u.user_id = NEW.user_id) = 2 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Teacher can only borrow 1 book';
+    IF (SELECT COUNT(*) FROM user WHERE school_name = NEW.school_name AND NEW.role_name = 'handler') > 0  THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one handler can be assigned to this school';
     END IF;
 END;

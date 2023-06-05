@@ -141,6 +141,15 @@ BEGIN
         WHERE ISBN = OLD.ISBN
           AND school_id = (SELECT school_id FROM school WHERE school_name = (SELECT school_name FROM user WHERE user_id = OLD.user_id));
     END IF;
+    IF OLD.status_ = 'borrowed' OR OLD.status_ = 'expired_borrowing' THEN
+        UPDATE user
+        SET active_borrows = active_borrows - 1
+        WHERE user.user_id = OLD.user_id;
+        UPDATE stores
+        SET available_copies = available_copies + 1 
+        WHERE ISBN = OLD.ISBN
+          AND school_id = (SELECT school_id FROM school WHERE school_name = (SELECT school_name FROM user WHERE user_id = OLD.user_id));
+    END IF;
 END;
 
 

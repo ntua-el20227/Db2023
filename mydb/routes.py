@@ -1485,7 +1485,7 @@ INNER JOIN (
     WHERE a.status_ IN ('borrowed', 'completed', 'expired_borrowing')
       AND a.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
     GROUP BY s2.school_name
-    HAVING COUNT(*) > 1
+    HAVING COUNT(*) > 20
 ) AS subquery ON s.school_name <> subquery.school_name
 WHERE a.status_ IN ('borrowed', 'completed', 'expired_borrowing')
   AND a.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
